@@ -124,6 +124,7 @@ int main(int argc, const char* argv[])
 		}
 	}
 
+	//adding a comment to see if git working fine
 
 	getchar();
 	return 0;
