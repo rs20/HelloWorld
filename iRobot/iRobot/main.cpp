@@ -1,6 +1,6 @@
 // Simulation.cpp : Defines the entry point for the console application.
 //
-
+// RON
 #include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
