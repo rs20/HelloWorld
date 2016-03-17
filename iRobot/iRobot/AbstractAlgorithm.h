@@ -12,7 +12,7 @@ public:
 	virtual ~AbstractAlgorithm() {}
 
 	// setSensor is called once when the Algorithm is initialized 
-	virtual void setSensor(const AbstractSensor& sensor) = 0;
+	//virtual void setSensor(const AbstractSensor& sensor) = 0;
 
 	// setConfiguration is called once when the Algorithm is initialized - see below 
 	virtual void setConfiguration(map<string, int> config) = 0;

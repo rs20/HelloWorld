@@ -1,18 +1,30 @@
-// Simulation.cpp : Defines the entry point for the console application.
+// Simulation (main) : Defines the entry point for the console application.
 //
 // RON
 #include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <map>
 
+// include for sleep
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#ifndef __HOUSE_H
+#define __HOUSE_H
 #include "House.h"
+#endif
+
 #include "Algorithm.cpp"
 
 
-#define MAX(a,b) (((a)<(b)) ? (a):(b))
+#define MAX(a,b) (((a)>(b)) ? (a):(b))
 
 void handleConfigFile(string configPath, map<string,int>& house);
 void handleHouseFile(string housePath, House& house);
@@ -75,21 +87,36 @@ int main(int argc, const char* argv[])
 	}
 
 	// start the game:
-	Sensor sensor(house);
+	//Sensor sensor(house);
+	Sensor *sensor = new Sensor(&house);
 	Algorithm alg;
 	alg.setSensor(sensor);
 	alg.setConfiguration(config);
 
-	_sleep(1);
+	Sleep(1);
 	cout << "iRobot starts cleaning the house.." << endl;
 	printHouseWithRobot(house);
 
 	// simulate the algorithm on the house:
-	for (int i = 0; i < config.at("MaxSteps"); i++) {
-		_sleep(1);
+	for (int i = 1; i <= config.at("MaxSteps"); i++) {
+		cout << "Robot Battery: " << alg.getCurBattery() << endl;
+		Sleep(1000);
+		cout << "Step " << i << endl;
+		//getchar();
 		Direction direction = alg.step();
-		if (house.matrix[house.robotRow][house.robotCol] > '0' && house.matrix[house.robotRow][house.robotCol] <= '9')
+		if (house.matrix[house.robotRow][house.robotCol] > '0' && house.matrix[house.robotRow][house.robotCol] <= '9') {
 			house.matrix[house.robotRow][house.robotCol] = house.matrix[house.robotRow][house.robotCol] - 1;
+			house.sumOfDirt--;
+		}
+
+		if (house.matrix[house.robotRow][house.robotCol] == 'D') { // charge battery
+			cout << "charging battery" << endl;
+			alg.chargeBattery();
+		}
+		else {
+			alg.consumeBattery();
+		}
+
 		if (direction == Direction::East) {
 			house.robotCol++;
 		}
@@ -105,11 +132,16 @@ int main(int argc, const char* argv[])
 		printHouseWithRobot(house);
 
 		alg.madeStep();
-		if (alg.getBatteryCapacity <= 0) {
+
+		if (house.sumOfDirt == 0 && house.robotRow == house.dockingRow && house.robotCol == house.dockingCol) {
+			cout << "Robot wins (cleaned the whole house in the limited time." << endl;
+			break;
+		}
+		if (alg.getCurBattery() <= 0) {
 			cout << "Battery's Dead! Game Over." << endl;
 			break;
 		}
-		if (alg.getMovesAvailable == 0) {
+		if (alg.getMovesAvailable() == 0) {
 			cout << "Time's up! No more moves." << endl;
 			break;
 		}
@@ -117,9 +149,8 @@ int main(int argc, const char* argv[])
 
 	// score the algorithm on the house
 	int score = MAX(0, 2000 
-						- 3*(house.initialSumOfDirt - house.sumOfDirt) 
-						+ ((house.robotRow == house.dockingRow && house.robotCol == house.dockingCol) ? 50 : -200));
-
+						- 3*(house.initialSumOfDirt - (house.initialSumOfDirt - house.sumOfDirt)) // -3*(sum_dirt_in_house - dirt_collected)
+						+ ((house.robotRow == house.dockingRow && house.robotCol == house.dockingCol) ? 50 : -200)); // +50 if back in docking station, -200 if not
 	cout << "The score of the algorithm on the house is " << score << "." << endl;
 
 	getchar();
@@ -132,29 +163,40 @@ int main(int argc, const char* argv[])
     return 0;
 }
 
+
+static vector<string> split(const string &s, char delimiter)
+{
+	vector<string> elements;
+	stringstream ss(s);
+	string item;
+	while (getline(ss, item, delimiter))
+		elements.push_back(item);
+	return elements;
+}
+
+static string trim(string& str)
+{
+	str.erase(0, str.find_first_not_of(' ')); // remove prefixing spaces
+	str.erase(str.find_last_not_of(' ') + 1); // remove surfixing spaces
+	return str;
+}
+
 void handleConfigFile(string configPath, map<string,int> &config)
 {
 	ifstream myfile(configPath + "config.ini");
 	string line;
-
-	// example according Ex1.pdf file
-	config.insert(std::pair<string, int>("MaxSteps", 1200));
-	config.insert(std::pair<string, int>("MaxStepsAfterWinner", 200));
-	config.insert(std::pair<string, int>("BatteryCapacity", 400));
-	config.insert(std::pair<string, int>("BatteryConsumptionRate", 1));
-	config.insert(std::pair<string, int>("BatteryRechargeRate", 20));
-
-	/*
+	
 	// update according to split 'sarel - המתרגל' did on last recitation
 	if (myfile.is_open()) {
-		getline(myfile, line);
-
+		while (getline(myfile, line)) {
+			vector<string> tokens = split(line, '=');
+			if (tokens.size() != 2)
+				continue;
+			config[trim(tokens[0])] = stoi(tokens[1]);
+		}
 		myfile.close();
 	}
-	*/
-
 }
-
 
 
 void handleHouseFile(string housePath, House& house)

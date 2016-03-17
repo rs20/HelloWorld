@@ -2,30 +2,40 @@
 
 #include "AbstractSensor.h"
 
+#ifndef __HOUSE_H
+#define __HOUSE_H
+#include "House.h"
+#endif
+
 class Sensor : public AbstractSensor
 {
 private:
-	House house;
+	House* house;
 public:
 	// pass the house to the sensor (by reference)
-	Sensor() {}
-	Sensor(House &h) {
+	Sensor(House *h) {
 		house = h;
 	}
 	SensorInformation sense() const {
 		SensorInformation si;
-		char dirt = house.matrix[house.robotRow][house.robotCol];
+		char dirt = house->matrix[house->robotRow][house->robotCol];
 		if (dirt >= '0' && dirt <= '9')
 			si.dirtLevel = dirt - '0';
-		else // dirt = ' '
+		else // dirt = ' ' / 'D' (0 dirt in docking station)
 			si.dirtLevel = 0;
-		if (house.matrix[house.robotRow][house.robotCol + 1] == 'W')
+		for (int i = 0; i <= 3; i++)
+			si.isWall[i] = false;
+		// east
+		if (house->matrix[house->robotRow][house->robotCol + 1] == 'W')
 			si.isWall[0] = true;
-		if (house.matrix[house.robotRow][house.robotCol - 1] == 'W')
+		// west
+		if (house->matrix[house->robotRow][house->robotCol - 1] == 'W')
 			si.isWall[1] = true;
-		if (house.matrix[house.robotRow + 1][house.robotCol] == 'W')
+		// south
+		if (house->matrix[house->robotRow + 1][house->robotCol] == 'W')
 			si.isWall[2] = true;
-		if (house.matrix[house.robotRow - 1][house.robotCol] == 'W')
+		// north
+		if (house->matrix[house->robotRow - 1][house->robotCol] == 'W')
 			si.isWall[3] = true;
 		return si;
 	}
