@@ -1,3 +1,4 @@
+// House struct
 #include <string>
 
 typedef struct House
