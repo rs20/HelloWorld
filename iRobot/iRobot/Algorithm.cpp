@@ -9,17 +9,15 @@
 #include <vector>
 #include <iostream>
 
-#define MIN(a,b) (((a)<(b)) ? (a):(b))
+
 
 
 class Algorithm : public AbstractAlgorithm
 {
 private:
 	Sensor* sensor;
-	int numOfSteps = 0;
 	int moreSteps;
 	int batteryCapacity;
-	int curBattery;
 	int batteryConsumptionRate;
 	int batteryRechargeRate;
 	// note that the algorithm does not have an access to the house (only its sensor).
@@ -33,7 +31,6 @@ public:
 		moreSteps = it->second;
 		it = config.find("BatteryCapacity");
 		batteryCapacity = it->second;
-		curBattery = it->second;
 		it = config.find("BatteryConsumptionRate");
 		batteryConsumptionRate = it->second;
 		it = config.find("BatteryRechargeRate");
@@ -60,20 +57,4 @@ public:
 		moreSteps = stepsTillFinishing;
 	}
 
-	void madeStep() {
-		numOfSteps++;
-		moreSteps--;
-	}
-	void consumeBattery() {
-		curBattery -= batteryConsumptionRate;
-	}
-	int getCurBattery() const {
-		return curBattery;
-	}
-	int getMovesAvailable() const {
-		return moreSteps;
-	}
-	void chargeBattery() {
-		curBattery = MIN(batteryCapacity, curBattery + batteryRechargeRate);
-	}
 };
