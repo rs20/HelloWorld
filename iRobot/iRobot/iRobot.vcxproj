@@ -148,8 +148,10 @@
   <ItemGroup>
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
+    <ClInclude Include="Auxiliary.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="House.h" />
+    <ClInclude Include="Score.h" />
     <ClInclude Include="SensorInformation.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="stdafx.h" />
@@ -157,6 +159,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Algorithm.cpp" />
+    <ClCompile Include="Auxiliary.cpp" />
+    <ClCompile Include="Score.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="Sensor.cpp" />
     <ClCompile Include="stdafx.cpp">
