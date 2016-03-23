@@ -51,8 +51,92 @@ std::wstring stringToWstring(const std::string& s)
 	return r;
 }
 
-void handleHouseFile(std::string housePath, House& house)
+void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 {
+#ifdef _WIN32
+	WIN32_FIND_DATA fd;
+	std::wstring stemp = stringToWstring(housePath + "*.house");
+	HANDLE hFile = FindFirstFile(stemp.c_str(), &fd);
+	std::wstring tempFileName = L"";
+	std::string fileName = "";
+	std::string* fileNames = new std::string[numOfHouses];
+
+	int i = -1;
+	if (INVALID_HANDLE_VALUE != hFile)
+	{
+		do
+		{
+			i++;
+			tempFileName = std::wstring(fd.cFileName);
+			fileNames[i] = std::string(tempFileName.begin(), tempFileName.end());
+		} while (FindNextFile(hFile, &fd));
+		FindClose(hFile);
+	}
+
+#endif
+	//need to add an option for linux using readdir and #include <dirent.h>
+
+	for (int k = 0; k < numOfHouses; k++)
+	{
+		std::ifstream myfile(housePath + fileNames[k]);
+		std::string line;
+
+		if (myfile.is_open()) {
+			getline(myfile, line);
+			houses[k].houseName = line;
+			getline(myfile, line);
+			houses[k].houseDescription = line;
+			getline(myfile, line);
+			houses[k].rows = stoi(line);
+			getline(myfile, line);
+			houses[k].cols = stoi(line);
+
+			houses[k].initialSumOfDirt = 0;
+
+			houses[k].matrix = new char*[houses[k].rows];
+			for (int i = 0; i < houses[k].rows; i++)
+				houses[k].matrix[i] = new char[houses[k].cols];
+
+			for (int i = 0; i < houses[k].rows; i++)
+			{
+				getline(myfile, line);
+				for (int j = 0; j < houses[k].cols; j++)
+				{
+					houses[k].matrix[i][j] = line[j];
+					// found robot's starting point == docking station
+					if (line[j] == 'D') {
+						houses[k].robotRow = i;
+						houses[k].robotCol = j;
+						houses[k].dockingRow = i;
+						houses[k].dockingCol = j;
+					}
+					if (line[j] >= '1' && line[j] <= '9')
+						houses[k].initialSumOfDirt += (line[j] - '0');
+				}
+			}
+
+			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
+
+			myfile.close();
+
+			// check that the outer rows and columns contain walls only
+			for (int i = 0; i < houses[k].rows; i++)
+			{
+				// TODO: handle houses with non walls only on outer rows/columns
+				// TODO: handle non good formatted houses
+			}
+		}
+		else {
+			std::cout << ERROR_HOUSE_FILE << std::endl;
+		}
+	}
+}
+
+
+// returns number of house files in housePath directory
+int getNumberOfHouses(std::string housePath)
+{
+	int numOfHouses = 0;
 #ifdef _WIN32
 	WIN32_FIND_DATA fd;
 	std::wstring stemp = stringToWstring(housePath + "*.house");
@@ -66,65 +150,14 @@ void handleHouseFile(std::string housePath, House& house)
 		{
 			tempFileName = std::wstring(fd.cFileName);
 			fileName = std::string(tempFileName.begin(), tempFileName.end());
+			numOfHouses++;
 		} while (FindNextFile(hFile, &fd));
 		FindClose(hFile);
 	}
 
 #endif
-	//need to add an option for linux using readdir and #include <dirent.h>
-
-	std::ifstream myfile(housePath + fileName);
-	std::string line;
-
-
-	if (myfile.is_open()) {
-		getline(myfile, line);
-		house.houseName = line;
-		getline(myfile, line);
-		house.houseDescription = line;
-		getline(myfile, line);
-		house.rows = stoi(line);
-		getline(myfile, line);
-		house.cols = stoi(line);
-
-		house.initialSumOfDirt = 0;
-
-		house.matrix = new char*[house.rows];
-		for (int i = 0; i < house.rows; i++)
-			house.matrix[i] = new char[house.cols];
-
-		for (int i = 0; i < house.rows; i++)
-		{
-			getline(myfile, line);
-			for (int j = 0; j < house.cols; j++)
-			{
-				house.matrix[i][j] = line[j];
-				// found robot's starting point == docking station
-				if (line[j] == 'D') {
-					house.robotRow = i;
-					house.robotCol = j;
-					house.dockingRow = i;
-					house.dockingCol = j;
-				}
-				if (line[j] >= '1' && line[j] <= '9')
-					house.initialSumOfDirt += (line[j] - '0');
-			}
-		}
-
-		house.sumOfDirt = house.initialSumOfDirt;
-
-		myfile.close();
-
-		// check that the outer rows and columns contain walls only
-		for (int i = 0; i < house.rows; i++)
-		{
-			// TODO: handle houses with non walls only on outer rows/columns
-			// TODO: handle non good formatted houses
-		}
-	}
-	else {
-		std::cout << ERROR_HOUSE_FILE << std::endl;
-	}
+	return numOfHouses;
+	// don't forget to handle linux
 }
 
 

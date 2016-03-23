@@ -27,7 +27,8 @@
 
 void handleConfigFile(std::string configPath, std::map<std::string, int>& house);
 std::wstring stringToWstring(const std::string& s);
-void handleHouseFile(std::string housePath, House& house);
+void handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
+int getNumberOfHouses(std::string housePath);
 void printHouseWithRobot(House& house);
 
 std::vector<std::string> split(const std::string &s, char delimiter);
