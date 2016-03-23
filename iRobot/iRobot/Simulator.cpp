@@ -51,7 +51,7 @@ int main(int argc, const char* argv[])
 			houses = new House[numOfHouses];
 			handleHouseFiles(defaultHousePath, numOfHouses, houses);
 		}
-		else // we got the house path, we'll use the defaultConfigPath
+		else if (!strcmp(argv[1], "-house_path")) // we got the house path, we'll use the defaultConfigPath
 		{
 			handleConfigFile(defaultConfigPath, config);
 			// get number of houses in directory
@@ -59,14 +59,35 @@ int main(int argc, const char* argv[])
 			houses = new House[numOfHouses];
 			handleHouseFiles(argv[2], numOfHouses, houses);
 		}
+		else
+		{
+			cout << WRONG_ARGUMENTS << endl;
+			return 1;
+		}
 	}
-	else if (argc == 5) // got both of the arguments.
+	else if (argc == 5) // got both of the arguments (remember: arguments can be received in any order)
 	{
-		handleConfigFile(argv[2], config);
-		// get number of houses in directory
-		numOfHouses = getNumberOfHouses(argv[2]);
-		houses = new House[numOfHouses];
-		handleHouseFiles(argv[4], numOfHouses, houses);
+		if (!strcmp(argv[1], "-config") && !strcmp(argv[3], "-house_path"))
+		{
+			handleConfigFile(argv[2], config);
+			// get number of houses in directory
+			numOfHouses = getNumberOfHouses(argv[4]);
+			houses = new House[numOfHouses];
+			handleHouseFiles(argv[4], numOfHouses, houses);
+		}
+		else if (!strcmp(argv[1], "-house_path") && !strcmp(argv[3], "-config"))
+		{
+			handleConfigFile(argv[4], config);
+			// get number of houses in directory
+			numOfHouses = getNumberOfHouses(argv[2]);
+			houses = new House[numOfHouses];
+			handleHouseFiles(argv[2], numOfHouses, houses);
+		}
+		else
+		{
+			cout << WRONG_ARGUMENTS << endl;
+			return 1;
+		}
 	}
 	else // ERROR: every argument represented by two strings - and we got odd number of arguments
 	{
@@ -79,18 +100,20 @@ int main(int argc, const char* argv[])
 	scores = new int[numOfHouses];
 	for (int k = 0; k < numOfHouses; k++)
 	{
+		if (!(houses[k].isValidHouse))
+			continue;
 		// just checking to see if it worked (print the house) - for debug purpose
 		if (houses[k].matrix != NULL) {
 			for (int i = 0; i < houses[k].rows; i++) {
 				for (int j = 0; j < houses[k].cols; j++) {
-					cout << houses[k].matrix[i][j] << "  ";
+					cout << houses[k].matrix[i][j] << " ";
 				}
 				cout << endl;
 			}
 		}
 
 		// start the game:
-		Sensor *sensor = new Sensor(&houses[k]);
+		Sensor sensor(&houses[k]);
 		Algorithm alg;
 		alg.setSensor(sensor);
 		alg.setConfiguration(config);
@@ -99,96 +122,103 @@ int main(int argc, const char* argv[])
 		curBattery = batteryCapacity;
 		batteryConsumptionRate = (config.find("BatteryConsumptionRate"))->second;
 		batteryRechargeRate = (config.find("BatteryRechargeRate"))->second;
-		this_num_steps = 0;
 
 		Sleep(1000);
-		cout << "iRobot starts cleaning the house.." << endl;
+		cout << "iRobot starts cleaning the house..(Battery: " << curBattery << ")" << endl;
 		printHouseWithRobot(houses[k]);
 
 		// simulate the algorithm on the house:
-		int i = 0;
 		bool goodStep = true;
-		while (true) {
-			i++;
-			cout << "Robot Battery: " << curBattery << endl;
-			Sleep(1);
-			cout << "Step " << i << endl;
+		this_num_steps = 0;
 
-			Direction direction = alg.step();
+		// if no dirt in house -> automatic win
+		if (houses[k].sumOfDirt != 0)
+		{
+			while (true) {
+				this_num_steps++;
+				Sleep(1);
 
-			//cleaning dust if there is any.
-			if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] > '0' && houses[k].matrix[houses[k].robotRow][houses[k].robotCol] <= '9') {
-				houses[k].matrix[houses[k].robotRow][houses[k].robotCol] = houses[k].matrix[houses[k].robotRow][houses[k].robotCol] - 1;
-				houses[k].sumOfDirt--;
-			}
+				Direction direction = alg.step();
 
-			switch (direction)
-			{
-			case Direction::East:
-				houses[k].robotCol++;
-				curBattery -= batteryConsumptionRate;
-				break;
-			case Direction::West:
-				houses[k].robotCol--;
-				curBattery -= batteryConsumptionRate;
-				break;
-			case Direction::South:
-				houses[k].robotRow++;
-				curBattery -= batteryConsumptionRate;
-				break;
-			case Direction::North:
-				houses[k].robotRow--;
-				curBattery -= batteryConsumptionRate;
-				break;
-			case Direction::Stay:
-				// charge battery only if the robot stays in the docking station
+				//cleaning dust if there is any.
+				if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] > '0' && houses[k].matrix[houses[k].robotRow][houses[k].robotCol] <= '9') {
+					houses[k].matrix[houses[k].robotRow][houses[k].robotCol] = houses[k].matrix[houses[k].robotRow][houses[k].robotCol] - 1;
+					houses[k].sumOfDirt--;
+				}
+
 				if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] == 'D') {
 					curBattery = MIN(batteryCapacity, curBattery + batteryRechargeRate);
-					//cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~` CHARGING BATTERY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+					//cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CHARGING BATTERY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl; // for debug purpose
 				}
-				else {
+
+				switch (direction)
+				{
+				case Direction::East:
+					houses[k].robotCol++;
+					curBattery -= batteryConsumptionRate;
+					break;
+				case Direction::West:
+					houses[k].robotCol--;
+					curBattery -= batteryConsumptionRate;
+					break;
+				case Direction::South:
+					houses[k].robotRow++;
+					curBattery -= batteryConsumptionRate;
+					break;
+				case Direction::North:
+					houses[k].robotRow--;
+					curBattery -= batteryConsumptionRate;
+					break;
+				case Direction::Stay:
 					curBattery -= batteryConsumptionRate;
 				}
-			}
-			if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
-				goodStep = false;
-				cout << INTO_WALL << endl; // for debug purpose
-				break;
-			}
 
-			//printHouseWithRobot(houses[k]); // for debug purpose
+				if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
+					goodStep = false;
+					cout << INTO_WALL << endl; // for debug purpose
+					break;
+				}
 
-			this_num_steps++;
+				// for debug purpose
+				//cout << "Step " << this_num_steps << endl;
+				//cout << "Robot Battery: " << curBattery << endl;
+				//printHouseWithRobot(houses[k]);
 
-			if (houses[k].sumOfDirt == 0 && houses[k].robotRow == houses[k].dockingRow && houses[k].robotCol == houses[k].dockingCol) {
-				cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
-				break;
-			}
-			if (curBattery <= 0) {
-				cout << BATTERY_DEAD << endl; // for debug purpose
-				break;
-			}
-			if (this_num_steps == max_steps) {
-				cout << NO_MORE_MOVES << endl;  // for debug purpose
-				break;
+				if (houses[k].sumOfDirt == 0 && houses[k].robotRow == houses[k].dockingRow && houses[k].robotCol == houses[k].dockingCol) {
+					cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
+					break;
+				}
+				if (curBattery <= 0) {
+					cout << BATTERY_DEAD << endl; // for debug purpose
+					break;
+				}
+				if (this_num_steps == max_steps) {
+					cout << NO_MORE_MOVES << endl;  // for debug purpose
+					break;
+				}
 			}
 		}
 
 		// score the algorithm on the house
 		is_back_in_docking = (houses[k].robotRow == houses[k].dockingRow && houses[k].robotCol == houses[k].dockingCol) ? 1 : 0;
-		scores[k] = scoreEx1(1, this_num_steps, this_num_steps, houses[k].initialSumOfDirt - houses[k].sumOfDirt, houses[k].initialSumOfDirt, is_back_in_docking);
 		if (goodStep == false) // if walked into a wall, score=0
 			scores[k] = 0;
+		else
+			scores[k] = score(1, this_num_steps, this_num_steps, houses[k].initialSumOfDirt - houses[k].sumOfDirt, houses[k].initialSumOfDirt, is_back_in_docking);
 
-		// free sensor
-		delete sensor;
 		getchar();
 	}
 
 	// print scores
-	for (int k = 0; k < numOfHouses; k++)
-		cout << "[" << (string)houses[k].houseName << "]\t" << scores[k] << endl;
+	for (int k = 0; k < numOfHouses; k++) {
+		if (houses[k].isValidHouse) {
+			// in ex1: the output should be only an integer (not the house name)
+			cout << "[" << (string)houses[k].houseName << "]\t" << scores[k] << endl; // for debug purpose
+			//cout << scores[k] << endl;
+		}
+	}
 	getchar();
+	
 	// free houses
 	for (int k = 0; k < numOfHouses; k++) {
 		for (int i = 0; i < houses[k].rows; i++)

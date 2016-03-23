@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Score.h"
 
-int scoreEx1(int position_in_competition, int winner_num_steps, int this_num_steps, int dirt_collected, int sum_dirt_in_house, int is_back_in_docking)
+int score(int position_in_competition, int winner_num_steps, int this_num_steps, int dirt_collected, int sum_dirt_in_house, int is_back_in_docking)
 {
 
 	return MAX(0, 2000

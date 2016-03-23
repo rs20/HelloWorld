@@ -61,6 +61,7 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	std::string fileName = "";
 	std::string* fileNames = new std::string[numOfHouses];
 
+	// we read the houses in ascii order (Simple1.house comes before Simple2.house etc)
 	int i = -1;
 	if (INVALID_HANDLE_VALUE != hFile)
 	{
@@ -78,6 +79,7 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 
 	for (int k = 0; k < numOfHouses; k++)
 	{
+		bool goodHouse = true;
 		std::ifstream myfile(housePath + fileNames[k]);
 		std::string line;
 
@@ -94,9 +96,104 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			houses[k].initialSumOfDirt = 0;
 
 			houses[k].matrix = new char*[houses[k].rows];
-			for (int i = 0; i < houses[k].rows; i++)
+			for (int i = 0; i < houses[k].rows; i++) {
 				houses[k].matrix[i] = new char[houses[k].cols];
+				for (int j = 0; j < houses[k].cols; j++)
+					houses[k].matrix[i][j] = ' ';
+			}
 
+			// [amir said at the forum that they will test with houses with rows and columns that match to the matrix
+			// i.e. -> if row and colum says 8 and 10 repsectively, then the matrix will be 8x10
+			// however -> we may need to fill in walls]
+
+			// let's try to take care of more complicated houses ... (for targils 2,3..)
+
+			/*
+			int i = 0;
+			while (getline(myfile, line) && i < houses[k].rows)
+			{
+				for (int j = 0; j < line.length(); j++)
+				{
+					houses[k].matrix[i][j] = line[j];
+					// found robot's starting point == docking station
+					if (line[j] == 'D') {
+						houses[k].robotRow = i;
+						houses[k].robotCol = j;
+						houses[k].dockingRow = i;
+						houses[k].dockingCol = j;
+					}
+					if (line[j] >= '1' && line[j] <= '9')
+						houses[k].initialSumOfDirt += (line[j] - '0');
+				}
+				i++;
+			}
+			*/
+			/*
+			// check that the house is formatted as desired (rows and columns as written and walls set properly)
+			if (i == houses[k].rows) { // rows match
+				// check that the first row contains walls only or else - override with walls
+				for (int j = 0; j < houses[k].cols; j++) {
+					if (houses[k].matrix[0][j] != 'W') {
+						if (houses[k].matrix[0][j] == 'D') {
+							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
+							houses[k].isValidHouse = false;
+							goodHouse = false;
+							break;
+						}
+						houses[k].matrix[0][j] = 'W';
+					}
+				}
+				if (!goodHouse)
+					continue; // to another house
+				// check that the last row contains walls only or else - override with walls
+				for (int j = 0; j < houses[k].cols; j++) {
+					if (houses[k].matrix[houses[k].rows-1][j] != 'W') {
+						if (houses[k].matrix[houses[k].rows][j] == 'D') {
+							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
+							houses[k].isValidHouse = false;
+							goodHouse = false;
+							break;
+						}
+						houses[k].matrix[houses[k].rows][j] = 'W';
+					}
+				}
+				if (!goodHouse)
+					continue; // to another house
+				// check that the most left column contains only walls or else - override with walls
+				for (int j = 0; j < houses[k].rows; j++) {
+					if (houses[k].matrix[j][0] != 'W') {
+						if (houses[k].matrix[j][0] == 'D') {
+							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
+							houses[k].isValidHouse = false;
+							goodHouse = false;
+							break;
+						}
+						houses[k].matrix[j][0] = 'W';
+					}
+				}
+				if (!goodHouse)
+					continue; // to another house
+				// check that the most right column contains walls only or else - override with walls
+				for (int j = 0; j < houses[k].rows; j++) {
+					if (houses[k].matrix[j][houses[k].cols-1] != 'W') {
+						if (houses[k].matrix[j][houses[k].cols - 1] == 'D') {
+							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
+							houses[k].isValidHouse = false;
+							goodHouse = false;
+							break;
+						}
+						houses[k].matrix[j][houses[k].cols-1] = 'W';
+					}
+				}
+				if (!goodHouse)
+					continue; // to another house
+				// Done! the house is formatted as desired
+			}
+			else {
+
+			}
+			*/
+			
 			for (int i = 0; i < houses[k].rows; i++)
 			{
 				getline(myfile, line);
@@ -114,20 +211,15 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 						houses[k].initialSumOfDirt += (line[j] - '0');
 				}
 			}
+			
 
 			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
-
+			houses[k].isValidHouse = true;
 			myfile.close();
-
-			// check that the outer rows and columns contain walls only
-			for (int i = 0; i < houses[k].rows; i++)
-			{
-				// TODO: handle houses with non walls only on outer rows/columns
-				// TODO: handle non good formatted houses
-			}
 		}
 		else {
 			std::cout << ERROR_HOUSE_FILE << std::endl;
+			houses[k].isValidHouse = false;
 		}
 	}
 }

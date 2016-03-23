@@ -23,6 +23,7 @@
 
 #define ERROR_HOUSE_FILE "Error opening the house file."
 #define ERROR_CONFIG_FILE "Error opening the config file."
+#define ERROR_OVERRIDE_DOCKING_STATION "Docking station will be overridden as it's placed under the surrounding walls."
 
 
 void handleConfigFile(std::string configPath, std::map<std::string, int>& house);
