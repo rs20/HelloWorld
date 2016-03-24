@@ -13,4 +13,6 @@
 #define NO_MORE_MOVES "Time's up! No more moves."
 #define INTO_WALL "Robot walked into a wall! Game Over."
 
+#define EMPTY_HOUSE_PATH "Error: There is not a single house in this path"
+
 #define MIN(a,b) (((a)<(b)) ? (a):(b))

@@ -2,6 +2,8 @@
 #include "Auxiliary.h"
 
 
+
+
 std::vector<std::string> split(const std::string &s, char delimiter)
 {
 	std::vector<std::string> elements;
@@ -19,7 +21,7 @@ std::string trim(std::string& str)
 	return str;
 }
 
-void handleConfigFile(std::string configPath, std::map<std::string, int> &config)
+int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 {
 	std::ifstream myfile(configPath + defaultConfigFile);
 	std::string line;
@@ -34,9 +36,12 @@ void handleConfigFile(std::string configPath, std::map<std::string, int> &config
 		}
 		myfile.close();
 	}
-	else {
+	else 
+	{
 		std::cout << ERROR_CONFIG_FILE << std::endl;
+		return -1;
 	}
+	return 0;
 }
 
 std::wstring stringToWstring(const std::string& s)
@@ -53,13 +58,13 @@ std::wstring stringToWstring(const std::string& s)
 
 void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 {
+	std::string* fileNames = new std::string[numOfHouses];
 #ifdef _WIN32
 	WIN32_FIND_DATA fd;
 	std::wstring stemp = stringToWstring(housePath + "*.house");
 	HANDLE hFile = FindFirstFile(stemp.c_str(), &fd);
 	std::wstring tempFileName = L"";
 	std::string fileName = "";
-	std::string* fileNames = new std::string[numOfHouses];
 
 	// we read the houses in ascii order (Simple1.house comes before Simple2.house etc)
 	int i = -1;
@@ -73,9 +78,38 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		} while (FindNextFile(hFile, &fd));
 		FindClose(hFile);
 	}
+#else
+	DIR *pDIR;
+	struct dirent *entry;
+	std::string temp = "";
+	int i = 0;
+	if (pDIR = opendir(housePath))
+	{
+		while (entry = readdir(pDIR))
+		{
+			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+			{
+				if (strlen(entry->d_name) > 6) // name of file is "X.house" so it should be > 6 
+				{
+					temp = entry->d_name;
+					temp = temp.substr(strlen(entry->d_name) - 6, strlen(entry->d_name) - 1);
+					if (!strcmp(temp.c_str(), ".house"))
+					{
+						fileNames[i] =  entry->d_name;
+						i++;
+					}
+				}
 
+			}
+		}
+		closedir(pDIR);
+	}
+	else
+	{
+		printf("%s\n", "Error in house path");
+		return -1;
+	}
 #endif
-	//need to add an option for linux using readdir and #include <dirent.h>
 
 	for (int k = 0; k < numOfHouses; k++)
 	{
@@ -211,6 +245,17 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 						houses[k].initialSumOfDirt += (line[j] - '0');
 				}
 			}
+
+			//filling the house walls
+			for (int i = 0; i < houses[k].rows; i++)
+			{
+				houses[k].matrix[i][houses[k].cols -1] = 'W';
+			}
+
+			for (int j = 0; j < houses[k].cols; j++)
+			{
+				houses[k].matrix[houses[k].rows-1][j] = 'W';
+			}
 			
 
 			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
@@ -246,10 +291,43 @@ int getNumberOfHouses(std::string housePath)
 		} while (FindNextFile(hFile, &fd));
 		FindClose(hFile);
 	}
+	else
+	{
+		std::cout << ERROR_HOUSE_PATH << std::endl;
+		return -1;
+	}
 
+#else
+	DIR *pDIR;
+	struct dirent *entry;
+	std::string temp = "";
+	if (pDIR = opendir(housePath))
+	{
+		while (entry = readdir(pDIR))
+		{
+			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) 
+			{
+				if (strlen(entry->d_name) > 6) // name of file is "X.house" so it should be > 6 
+				{
+					temp = entry->d_name;
+					temp = temp.substr(strlen(entry->d_name) - 6, strlen(entry->d_name) - 1);
+					if (!strcmp(temp.c_str(), ".house"))
+					{
+						numOfHouses++;
+					}
+				}
+
+			}
+		}
+		closedir(pDIR);
+	}
+	else
+	{
+		std::cout << ERROR_HOUSE_PATH << std::endl;
+		return -1;
+	}
 #endif
 	return numOfHouses;
-	// don't forget to handle linux
 }
 
 

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <string.h>
 #include <map>
 #include <vector>
 #ifndef __HOUSE_H
@@ -14,6 +15,7 @@
 #include <Windows.h>
 #else
 #include <unistd.h>
+#include <dirent.h>
 #endif
 
 
@@ -23,10 +25,11 @@
 
 #define ERROR_HOUSE_FILE "Error opening the house file."
 #define ERROR_CONFIG_FILE "Error opening the config file."
+#define ERROR_HOUSE_PATH "Error: Wrong path for houses directory"
 #define ERROR_OVERRIDE_DOCKING_STATION "Docking station will be overridden as it's placed under the surrounding walls."
 
 
-void handleConfigFile(std::string configPath, std::map<std::string, int>& house);
+int handleConfigFile(std::string configPath, std::map<std::string, int>& house);
 std::wstring stringToWstring(const std::string& s);
 void handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);

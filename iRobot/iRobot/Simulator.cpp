@@ -1,10 +1,28 @@
 // Simulation (main,cpp) : Defines the entry point for the console application.
 //
-
 #include "stdafx.h"
 #include "Simulator.h"
 #include "Auxiliary.h"
 #include "Score.h"
+
+// make sure the path is ending with "/" (except from the empty path)
+std::string handleSlash(const char* path)
+{
+	if (path == "") 
+	{
+		return path;
+	}
+
+	int stringLength = strlen(path);
+	if (path[stringLength-1] == '/') 
+	{
+		return path;
+	}
+
+	char* newPath = strcat((char*)path, "/");
+	return newPath;
+}
+
 
 
 int main(int argc, const char* argv[])
@@ -34,9 +52,17 @@ int main(int argc, const char* argv[])
 	if (argc == 1) //both arguments are missing - NEED TO: look for the files in the working directory
 	{
 		//get the config
-		handleConfigFile(defaultConfigPath, config);
+		if (handleConfigFile(defaultConfigPath, config) == -1)
+		{
+			return 1;
+		}
 		// get number of houses in directory
 		numOfHouses = getNumberOfHouses(defaultHousePath);
+		if (numOfHouses == -1 || numOfHouses==0)
+		{
+			std::cout << EMPTY_HOUSE_PATH << std::endl;
+			return -1;
+		}
 		houses = new House[numOfHouses];
 		//get the house file
 		handleHouseFiles(defaultHousePath, numOfHouses, houses);
@@ -45,19 +71,35 @@ int main(int argc, const char* argv[])
 	{
 		if (!strcmp(argv[1], "-config")) // we got the config path, we'll use the defaultHousePath
 		{
-			handleConfigFile(argv[2], config);
+			if (handleConfigFile(handleSlash(argv[2]), config) == -1)
+			{
+				return 1;
+			}
 			// get number of houses in directory
 			numOfHouses = getNumberOfHouses(defaultHousePath);
+			if (numOfHouses == -1 || numOfHouses == 0)
+			{
+				std::cout << EMPTY_HOUSE_PATH << std::endl;
+				return -1;
+			}
 			houses = new House[numOfHouses];
 			handleHouseFiles(defaultHousePath, numOfHouses, houses);
 		}
 		else if (!strcmp(argv[1], "-house_path")) // we got the house path, we'll use the defaultConfigPath
 		{
-			handleConfigFile(defaultConfigPath, config);
+			if (handleConfigFile(handleSlash(defaultConfigPath), config) == -1)
+			{
+				return 1;
+			}
 			// get number of houses in directory
 			numOfHouses = getNumberOfHouses(argv[2]);
+			if (numOfHouses == -1 || numOfHouses == 0)
+			{
+				std::cout << EMPTY_HOUSE_PATH << std::endl;
+				return -1;
+			}
 			houses = new House[numOfHouses];
-			handleHouseFiles(argv[2], numOfHouses, houses);
+			handleHouseFiles(handleSlash(argv[2]), numOfHouses, houses);
 		}
 		else
 		{
@@ -69,19 +111,35 @@ int main(int argc, const char* argv[])
 	{
 		if (!strcmp(argv[1], "-config") && !strcmp(argv[3], "-house_path"))
 		{
-			handleConfigFile(argv[2], config);
+			if (handleConfigFile(handleSlash(argv[2]), config) == -1)
+			{
+				return 1;
+			}
 			// get number of houses in directory
 			numOfHouses = getNumberOfHouses(argv[4]);
+			if (numOfHouses == -1 || numOfHouses == 0)
+			{
+				std::cout << EMPTY_HOUSE_PATH << std::endl;
+				return -1;
+			}
 			houses = new House[numOfHouses];
-			handleHouseFiles(argv[4], numOfHouses, houses);
+			handleHouseFiles(handleSlash(argv[4]), numOfHouses, houses);
 		}
 		else if (!strcmp(argv[1], "-house_path") && !strcmp(argv[3], "-config"))
 		{
-			handleConfigFile(argv[4], config);
+			if (handleConfigFile(handleSlash(argv[4]), config) == -1)
+			{
+				return 1;
+			}
 			// get number of houses in directory
 			numOfHouses = getNumberOfHouses(argv[2]);
+			if (numOfHouses == -1 || numOfHouses == 0)
+			{
+				std::cout << EMPTY_HOUSE_PATH << std::endl;
+				return -1;
+			}
 			houses = new House[numOfHouses];
-			handleHouseFiles(argv[2], numOfHouses, houses);
+			handleHouseFiles(handleSlash(argv[2]), numOfHouses, houses);
 		}
 		else
 		{
