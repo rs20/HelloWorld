@@ -5,25 +5,6 @@
 #include "Auxiliary.h"
 #include "Score.h"
 
-// make sure the path is ending with "/" (except from the empty path)
-std::string handleSlash(const char* path)
-{
-	if (path == "") 
-	{
-		return path;
-	}
-
-	int stringLength = strlen(path);
-	if (path[stringLength-1] == '/') 
-	{
-		return path;
-	}
-
-	char* newPath = strcat((char*)path, "/");
-	return newPath;
-}
-
-
 
 int main(int argc, const char* argv[])
 {
@@ -273,6 +254,9 @@ int main(int argc, const char* argv[])
 			// in ex1: the output should be only an integer (not the house name)
 			cout << "[" << (string)houses[k].houseName << "]\t" << scores[k] << endl; // for debug purpose
 			//cout << scores[k] << endl;
+		}
+		else {
+			cout << "[" << (string)houses[k].houseName << "]\t" << houses[k].error << endl;
 		}
 	}
 	getchar();

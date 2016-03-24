@@ -1,7 +1,23 @@
 #include "stdafx.h"
 #include "Auxiliary.h"
 
+// make sure the path is ending with "/" (except from the empty path)
+std::string handleSlash(const char* path)
+{
+	if (path == "")
+	{
+		return path;
+	}
 
+	int stringLength = strlen(path);
+	if (path[stringLength - 1] == '/')
+	{
+		return path;
+	}
+
+	char* newPath = strcat((char*)path, "/");
+	return newPath;
+}
 
 
 std::vector<std::string> split(const std::string &s, char delimiter)
@@ -113,7 +129,8 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 
 	for (int k = 0; k < numOfHouses; k++)
 	{
-		bool goodHouse = true;
+		int numOfDockingStations = 0;
+		houses[k].isValidHouse = true;
 		std::ifstream myfile(housePath + fileNames[k]);
 		std::string line;
 
@@ -141,130 +158,84 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			// however -> we may need to fill in walls]
 
 			// let's try to take care of more complicated houses ... (for targils 2,3..)
-
-			/*
-			int i = 0;
-			while (getline(myfile, line) && i < houses[k].rows)
-			{
-				for (int j = 0; j < line.length(); j++)
-				{
-					houses[k].matrix[i][j] = line[j];
-					// found robot's starting point == docking station
-					if (line[j] == 'D') {
-						houses[k].robotRow = i;
-						houses[k].robotCol = j;
-						houses[k].dockingRow = i;
-						houses[k].dockingCol = j;
-					}
-					if (line[j] >= '1' && line[j] <= '9')
-						houses[k].initialSumOfDirt += (line[j] - '0');
-				}
-				i++;
-			}
-			*/
-			/*
-			// check that the house is formatted as desired (rows and columns as written and walls set properly)
-			if (i == houses[k].rows) { // rows match
-				// check that the first row contains walls only or else - override with walls
-				for (int j = 0; j < houses[k].cols; j++) {
-					if (houses[k].matrix[0][j] != 'W') {
-						if (houses[k].matrix[0][j] == 'D') {
-							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
-							houses[k].isValidHouse = false;
-							goodHouse = false;
-							break;
-						}
-						houses[k].matrix[0][j] = 'W';
-					}
-				}
-				if (!goodHouse)
-					continue; // to another house
-				// check that the last row contains walls only or else - override with walls
-				for (int j = 0; j < houses[k].cols; j++) {
-					if (houses[k].matrix[houses[k].rows-1][j] != 'W') {
-						if (houses[k].matrix[houses[k].rows][j] == 'D') {
-							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
-							houses[k].isValidHouse = false;
-							goodHouse = false;
-							break;
-						}
-						houses[k].matrix[houses[k].rows][j] = 'W';
-					}
-				}
-				if (!goodHouse)
-					continue; // to another house
-				// check that the most left column contains only walls or else - override with walls
-				for (int j = 0; j < houses[k].rows; j++) {
-					if (houses[k].matrix[j][0] != 'W') {
-						if (houses[k].matrix[j][0] == 'D') {
-							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
-							houses[k].isValidHouse = false;
-							goodHouse = false;
-							break;
-						}
-						houses[k].matrix[j][0] = 'W';
-					}
-				}
-				if (!goodHouse)
-					continue; // to another house
-				// check that the most right column contains walls only or else - override with walls
-				for (int j = 0; j < houses[k].rows; j++) {
-					if (houses[k].matrix[j][houses[k].cols-1] != 'W') {
-						if (houses[k].matrix[j][houses[k].cols - 1] == 'D') {
-							std::cout << ERROR_OVERRIDE_DOCKING_STATION << std::endl;
-							houses[k].isValidHouse = false;
-							goodHouse = false;
-							break;
-						}
-						houses[k].matrix[j][houses[k].cols-1] = 'W';
-					}
-				}
-				if (!goodHouse)
-					continue; // to another house
-				// Done! the house is formatted as desired
-			}
-			else {
-
-			}
-			*/
 			
-			for (int i = 0; i < houses[k].rows; i++)
+			getline(myfile, line);
+			for (int i = 0; i < houses[k].rows && myfile; i++)
 			{
-				getline(myfile, line);
-				for (int j = 0; j < houses[k].cols; j++)
+				for (int j = 0; j < houses[k].cols && j < line.length(); j++)
 				{
 					houses[k].matrix[i][j] = line[j];
 					// found robot's starting point == docking station
 					if (line[j] == 'D') {
+						numOfDockingStations++;
 						houses[k].robotRow = i;
 						houses[k].robotCol = j;
 						houses[k].dockingRow = i;
 						houses[k].dockingCol = j;
 					}
+					// amir: treat any un recognized character as ' '
+					else if (line[j] != 'W' && line[j] != ' ' && (line[j] < '0' || line[j] > '9'))
+						houses[k].matrix[i][j] = ' ';
+
 					if (line[j] >= '1' && line[j] <= '9')
 						houses[k].initialSumOfDirt += (line[j] - '0');
 				}
+				getline(myfile, line);
+			}
+			if (numOfDockingStations == 0)
+			{
+				houses[k].isValidHouse = false;
+				houses[k].error = ERROR_NO_DOCKING_STATIONS;
+				continue;
+			}
+			else if (numOfDockingStations > 1)
+			{
+				houses[k].isValidHouse = false;
+				houses[k].error = ERROR_TOO_MANY_DOCKING_STATIONS;
+				continue;
 			}
 
 			//filling the house walls
 			for (int i = 0; i < houses[k].rows; i++)
 			{
+				if (houses[k].matrix[i][0] == 'D') {
+					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
+					houses[k].isValidHouse = false;
+					break;
+				}
+				houses[k].matrix[i][0] = 'W';
+				if (houses[k].matrix[i][houses[k].cols - 1] == 'D') {
+					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
+					houses[k].isValidHouse = false;
+					break;
+				}
 				houses[k].matrix[i][houses[k].cols -1] = 'W';
 			}
 
 			for (int j = 0; j < houses[k].cols; j++)
 			{
-				houses[k].matrix[houses[k].rows-1][j] = 'W';
+				if (houses[k].matrix[0][j] == 'D') {
+					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
+					houses[k].isValidHouse = false;
+					break;
+				}
+				houses[k].matrix[0][j] = 'W';
+				if (houses[k].matrix[houses[k].rows - 1][j] == 'D') {
+					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
+					houses[k].isValidHouse = false;
+					break;
+				}
+				houses[k].matrix[houses[k].rows - 1][j] = 'W';
 			}
-			
 
+
+			
 			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
-			houses[k].isValidHouse = true;
 			myfile.close();
 		}
 		else {
-			std::cout << ERROR_HOUSE_FILE << std::endl;
 			houses[k].isValidHouse = false;
+			houses[k].error = ERROR_HOUSE_FILE;
 		}
 	}
 }

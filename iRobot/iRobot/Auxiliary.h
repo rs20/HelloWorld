@@ -27,8 +27,10 @@
 #define ERROR_CONFIG_FILE "Error opening the config file."
 #define ERROR_HOUSE_PATH "Error: Wrong path for houses directory"
 #define ERROR_OVERRIDE_DOCKING_STATION "Docking station will be overridden as it's placed under the surrounding walls."
+#define ERROR_NO_DOCKING_STATIONS "No docking stations found."
+#define ERROR_TOO_MANY_DOCKING_STATIONS "Too many docking stations found."
 
-
+std::string handleSlash(const char* path);
 int handleConfigFile(std::string configPath, std::map<std::string, int>& house);
 std::wstring stringToWstring(const std::string& s);
 void handleHouseFiles(std::string housePath, int numOfHouses, House* houses);

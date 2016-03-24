@@ -15,4 +15,5 @@ typedef struct House
 	int initialSumOfDirt;
 	int sumOfDirt;
 	bool isValidHouse; // flag if the house is formatted properly or not
+	std::string error;
 } House;
