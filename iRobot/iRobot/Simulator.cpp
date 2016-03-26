@@ -168,6 +168,7 @@ int main(int argc, const char* argv[])
 
 		// simulate the algorithm on the house:
 		bool goodStep = true;
+		bool ifConsume = true;
 		this_num_steps = 0;
 
 		// if no dirt in house -> automatic win
@@ -175,7 +176,7 @@ int main(int argc, const char* argv[])
 		{
 			while (true) {
 				this_num_steps++;
-				Sleep(1);
+				Sleep(1000);
 
 				Direction direction = alg.step();
 
@@ -190,26 +191,27 @@ int main(int argc, const char* argv[])
 					//cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CHARGING BATTERY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl; // for debug purpose
 				}
 
+
+				// consume battery only if did not start the move from the docking station
+				// as amir said: staying or starting the move from the docking station does not consume battery
+				if (houses[k].robotRow != houses[k].dockingRow || houses[k].robotCol != houses[k].dockingCol)
+					curBattery -= batteryConsumptionRate;
+
 				switch (direction)
 				{
 				case Direction::East:
 					houses[k].robotCol++;
-					curBattery -= batteryConsumptionRate;
 					break;
 				case Direction::West:
 					houses[k].robotCol--;
-					curBattery -= batteryConsumptionRate;
 					break;
 				case Direction::South:
 					houses[k].robotRow++;
-					curBattery -= batteryConsumptionRate;
 					break;
 				case Direction::North:
 					houses[k].robotRow--;
-					curBattery -= batteryConsumptionRate;
 					break;
-				case Direction::Stay:
-					curBattery -= batteryConsumptionRate;
+				// do nothing for 'Stay'
 				}
 
 				if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
@@ -219,9 +221,9 @@ int main(int argc, const char* argv[])
 				}
 
 				// for debug purpose
-				//cout << "Step " << this_num_steps << endl;
-				//cout << "Robot Battery: " << curBattery << endl;
-				//printHouseWithRobot(houses[k]);
+				cout << "Step " << this_num_steps << endl;
+				cout << "Robot Battery: " << curBattery << endl;
+				printHouseWithRobot(houses[k]);
 
 				if (houses[k].sumOfDirt == 0 && houses[k].robotRow == houses[k].dockingRow && houses[k].robotCol == houses[k].dockingCol) {
 					cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
