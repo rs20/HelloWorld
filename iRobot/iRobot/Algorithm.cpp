@@ -1,10 +1,10 @@
 // Algorithm.cpp
 #include "stdafx.h"
-
+#include <string>
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "Sensor.cpp"
-
+#include <stdlib.h>
 #include <time.h>
 #include <vector>
 #include <iostream>
@@ -20,10 +20,10 @@ private:
 	int batteryRechargeRate;
 	// note that the algorithm does not have an access to the house (only its sensor).
 public:
-	virtual void setSensor(const AbstractSensor& s) override {
+	virtual void setSensor(const AbstractSensor& s) {
 		sensor = &s;
 	}
-	virtual void setConfiguration(map<string, int> config) override {
+	virtual void setConfiguration(map<string, int> config) {
 		map<string, int>::iterator it;
 		it = config.find("MaxSteps");
 		moreSteps = it->second;
@@ -35,11 +35,11 @@ public:
 		batteryRechargeRate = it->second;
 	}
 	// implement naive selection of direction to move to using the sensor
-	virtual Direction step() override {
+	virtual Direction step() {
 		SensorInformation si = sensor->sense();
 		int numOfOptions = 1; // may always stay in the same place
 		vector<Direction> vec;
-		vec.push_back(Direction::Stay);
+		vec.push_back(static_cast<Direction>(5));
 		for (int i = 0; i < 4; i++)
 			if (si.isWall[i] == false) {
 				numOfOptions++;
@@ -51,7 +51,7 @@ public:
 		int randomStep = rand() % numOfOptions;
 		return vec.at(randomStep);
 	}
-	virtual void aboutToFinish(int stepsTillFinishing) override {
+	virtual void aboutToFinish(int stepsTillFinishing) {
 		moreSteps = stepsTillFinishing;
 	}
 };

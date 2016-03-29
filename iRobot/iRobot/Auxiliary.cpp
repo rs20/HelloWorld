@@ -1,15 +1,17 @@
 #include "stdafx.h"
 #include "Auxiliary.h"
+#include <stdlib.h>
+#include <string>
 
 // make sure the path is ending with "/" (except from the empty path)
 std::string handleSlash(const char* path)
 {
-	if (path == "")
+	if (!(strcmp(path, "")))
 	{
 		return path;
 	}
 
-	int stringLength = strlen(path);
+	size_t stringLength = strlen(path);
 	if (path[stringLength - 1] == '/')
 	{
 		return path;
@@ -39,7 +41,8 @@ std::string trim(std::string& str)
 
 int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 {
-	std::ifstream myfile(configPath + defaultConfigFile);
+	std::string fullFileName = configPath + defaultConfigFile;
+	std::ifstream myfile(fullFileName.c_str());
 	std::string line;
 
 	// update according to split 'sarel - המתרגל' did on last recitation
@@ -48,7 +51,7 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 			std::vector<std::string> tokens = split(line, '=');
 			if (tokens.size() != 2)
 				continue;
-			config[trim(tokens[0])] = stoi(tokens[1]);
+			config[trim(tokens[0])] = atoi(tokens[1].c_str());
 		}
 		myfile.close();
 	}
@@ -59,7 +62,7 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	}
 	return 0;
 }
-
+#ifdef _WIN32
 std::wstring stringToWstring(const std::string& s)
 {
 	int len;
@@ -71,6 +74,7 @@ std::wstring stringToWstring(const std::string& s)
 	delete[] buf;
 	return r;
 }
+#endif
 
 void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 {
@@ -99,9 +103,9 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	struct dirent *entry;
 	std::string temp = "";
 	int i = 0;
-	if (pDIR = opendir(housePath))
+	if ((pDIR = opendir(housePath.c_str())))
 	{
-		while (entry = readdir(pDIR))
+		while ((entry = readdir(pDIR)))
 		{
 			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
 			{
@@ -123,7 +127,7 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	else
 	{
 		printf("%s\n", "Error in house path");
-		return -1;
+		return;
 	}
 #endif
 
@@ -131,7 +135,8 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	{
 		int numOfDockingStations = 0;
 		houses[k].isValidHouse = true;
-		std::ifstream myfile(housePath + fileNames[k]);
+		std::string fullFileName = housePath + fileNames[k];
+		std::ifstream myfile(fullFileName.c_str());
 		std::string line;
 
 		if (myfile.is_open()) {
@@ -140,9 +145,9 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			getline(myfile, line);
 			houses[k].houseDescription = line;
 			getline(myfile, line);
-			houses[k].rows = stoi(line);
+			houses[k].rows = atoi(line.c_str());
 			getline(myfile, line);
-			houses[k].cols = stoi(line);
+			houses[k].cols = atoi(line.c_str());
 
 			houses[k].initialSumOfDirt = 0;
 
@@ -162,7 +167,7 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			getline(myfile, line);
 			for (int i = 0; i < houses[k].rows && myfile; i++)
 			{
-				for (int j = 0; j < houses[k].cols && j < line.length(); j++)
+				for (int j = 0; j < houses[k].cols && j < ((int)line.length()); j++)
 				{
 					houses[k].matrix[i][j] = line[j];
 					// found robot's starting point == docking station
@@ -272,9 +277,9 @@ int getNumberOfHouses(std::string housePath)
 	DIR *pDIR;
 	struct dirent *entry;
 	std::string temp = "";
-	if (pDIR = opendir(housePath))
+	if ((pDIR = opendir(housePath.c_str())))
 	{
-		while (entry = readdir(pDIR))
+		while ((entry = readdir(pDIR)))
 		{
 			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) 
 			{

@@ -17,7 +17,7 @@ public:
 	Sensor(House *h) {
 		house = h;
 	}
-	virtual SensorInformation sense() const override {
+	virtual SensorInformation sense() const {
 		SensorInformation si;
 		char dirt = house->matrix[house->robotRow][house->robotCol];
 		if (dirt >= '0' && dirt <= '9')
