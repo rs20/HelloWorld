@@ -137,7 +137,8 @@ void startSimulation(House* houses, int numOfHouses, map<string, int> config)
 	for (int k = 0; k < numOfHouses; k++) {
 		if (houses[k].isValidHouse) {
 			// in ex1: the output should be only an integer (not the house name)
-			cout << "[" << (string)houses[k].houseName << "]\t" << scores[k] << endl;
+			//cout << "[" << (string)houses[k].houseName << "]\t" << scores[k] << endl;
+			cout << scores[k] << endl;
 		}
 		else {
 			cout << "[" << (string)houses[k].houseName << "]\t" << houses[k].error << endl;
