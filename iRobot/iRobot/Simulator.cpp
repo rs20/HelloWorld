@@ -98,7 +98,7 @@ void startSimulation(House* houses, int numOfHouses, map<string, int> config)
 
 				if (houses[k].matrix[houses[k].robotRow][houses[k].robotCol] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
 					goodStep = false;
-					//cout << INTO_WALL << endl; // for debug purpose
+					cout << INTO_WALL << endl;
 					break;
 				}
 
@@ -108,7 +108,7 @@ void startSimulation(House* houses, int numOfHouses, map<string, int> config)
 				printHouseWithRobot(houses[k]);
 
 				if (houses[k].sumOfDirt == 0 && houses[k].robotRow == houses[k].dockingRow && houses[k].robotCol == houses[k].dockingCol) {
-					cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
+					//cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
 					break;
 				}
 				if (curBattery <= 0) {
@@ -126,12 +126,10 @@ void startSimulation(House* houses, int numOfHouses, map<string, int> config)
 		is_back_in_docking = (houses[k].robotRow == houses[k].dockingRow && houses[k].robotCol == houses[k].dockingCol) ? 1 : 0;
 		if (goodStep == false) // if walked into a wall, score=0
 			scores[k] = 0;
-		else {
-			if (houses[k].sumOfDirt == 0)
-				scores[k] = score(1, this_num_steps, this_num_steps, houses[k].initialSumOfDirt - houses[k].sumOfDirt, houses[k].initialSumOfDirt, is_back_in_docking);
-			else
-				scores[k] = score(10, this_num_steps, this_num_steps, houses[k].initialSumOfDirt - houses[k].sumOfDirt, houses[k].initialSumOfDirt, is_back_in_docking);
-		}
+		else if (houses[k].sumOfDirt == 0 && is_back_in_docking)
+			scores[k] = score(1, this_num_steps, this_num_steps, houses[k].initialSumOfDirt - houses[k].sumOfDirt, houses[k].initialSumOfDirt, is_back_in_docking);
+		else
+			scores[k] = score(10, this_num_steps, this_num_steps, houses[k].initialSumOfDirt - houses[k].sumOfDirt, houses[k].initialSumOfDirt, is_back_in_docking);
 		getchar();
 	}
 
@@ -140,13 +138,13 @@ void startSimulation(House* houses, int numOfHouses, map<string, int> config)
 		if (houses[k].isValidHouse) {
 			// in ex1: the output should be only an integer (not the house name)
 			cout << "[" << (string)houses[k].houseName << "]\t" << scores[k] << endl;
-			//cout << scores[k] << endl;
 		}
 		else {
 			cout << "[" << (string)houses[k].houseName << "]\t" << houses[k].error << endl;
 		}
 	}
 
+	getchar();
 	// free houses
 	for (int k = 0; k < numOfHouses; k++) {
 		for (int i = 0; i < houses[k].rows; i++)
