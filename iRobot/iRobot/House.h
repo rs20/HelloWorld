@@ -3,11 +3,14 @@
 
 typedef struct House
 {
-	std::string houseName;
+	// inofrmation based on .house file
+	std::string houseFileName;
 	std::string houseDescription;
-	char** matrix;
+	int maxSteps;
 	int rows;
 	int cols;
+	char** matrix;
+	// information the program figured out
 	int robotRow;
 	int robotCol;
 	int dockingRow;

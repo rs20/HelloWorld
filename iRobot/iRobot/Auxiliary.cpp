@@ -39,13 +39,24 @@ std::string trim(std::string& str)
 	return str;
 }
 
+// return -1 for exit + no usage message needed
+// return -2 for exit + usage message needed
 int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 {
 	std::string fullFileName = configPath + defaultConfigFile;
 	std::ifstream myfile(fullFileName.c_str());
 	std::string line;
+	// to check if all values were in the file
+	std::map<std::string, bool> values;
+	values["MaxStepsAfterWinner"] = false;
+	values["BatteryCapacity"] = false;
+	values["BatteryConsumptionRate"] = false;
+	values["BatteryRechargeRate"] = false;
 
-	// update according to split 'sarel - המתרגל' did on last recitation
+	// check if file exists - if not, return
+	if (!myfile.good())
+		return -2;
+
 	if (myfile.is_open()) {
 		while (getline(myfile, line)) {
 			std::vector<std::string> tokens = split(line, '=');
@@ -57,11 +68,52 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	}
 	else 
 	{
-		std::cout << ERROR_CONFIG_FILE << std::endl;
+		std::cout << ERROR_CONFIG_FILE1 << configPath << ERROR_CONFIG_FILE2 << std::endl;
 		return -1;
 	}
+
+	int missing = 4;
+	for (std::map<std::string, int>::iterator it = config.begin(); it != config.end(); it++) {
+		if (!strcmp((it->first).c_str(), "MaxStepsAfterWinner")) {
+			values["MaxStepsAfterWinner"] = true;
+			missing--;
+		}
+		else if (!strcmp((it->first).c_str(), "BatteryCapacity")) {
+			values["BatteryCapacity"] = true;
+			missing--;
+		}
+		else if (!strcmp((it->first).c_str(), "BatteryConsumptionRate")) {
+			values["BatteryConsumptionRate"] = true;
+			missing--;
+		}
+		else if (!strcmp((it->first).c_str(), "BatteryRechargeRate")) {
+			values["BatteryRechargeRate"] = true;
+			missing--;
+		}
+		// else: ignore as specified in the pdf
+	}
+
+	if (missing > 0) {
+		std::cout << "config.ini missing " << missing << " parameter(s): ";
+		bool first = true;
+		for (std::map<std::string, bool>::iterator it = values.begin(); it != values.end(); it++) {
+			if (values[it->first] == false) {
+				if (first) {
+					std::cout << it->first;
+					first = false;
+				}
+				else {
+					std::cout << ", " << it->first;
+				}
+			}
+		}
+		std::cout << std::endl;
+		return -1;
+	}
+
 	return 0;
 }
+
 #ifdef _WIN32
 std::wstring stringToWstring(const std::string& s)
 {
@@ -76,7 +128,8 @@ std::wstring stringToWstring(const std::string& s)
 }
 #endif
 
-void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
+// return -1 for error / 0 for ok
+int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 {
 	std::string* fileNames = new std::string[numOfHouses];
 #ifdef _WIN32
@@ -136,21 +189,38 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		int numOfDockingStations = 0;
 		houses[k].isValidHouse = true;
 		std::string fullFileName = housePath + fileNames[k];
+		houses[k].houseFileName = fullFileName;
 		std::ifstream myfile(fullFileName.c_str());
 		std::string line;
 
 		if (myfile.is_open()) {
 			getline(myfile, line);
-			houses[k].houseName = line;
-			getline(myfile, line);
 			houses[k].houseDescription = line;
 			getline(myfile, line);
+			if (atoi(line.c_str()) < 0) {
+				houses[k].isValidHouse = false;
+				houses[k].error = "line number 2 in house file shall be a positive number, found: " + atoi(line.c_str());
+				continue;
+			}
+			houses[k].maxSteps = atoi(line.c_str());
+			getline(myfile, line);
+			if (atoi(line.c_str()) < 0) {
+				houses[k].isValidHouse = false;
+				houses[k].error = "line number 3 in house file shall be a positive number, found: " + atoi(line.c_str());
+				continue;
+			}
 			houses[k].rows = atoi(line.c_str());
 			getline(myfile, line);
+			if (atoi(line.c_str()) < 0) {
+				houses[k].isValidHouse = false;
+				houses[k].error = "line number 4 in house file shall be a positive number, found: " + atoi(line.c_str());
+				continue;
+			}
 			houses[k].cols = atoi(line.c_str());
 
 			houses[k].initialSumOfDirt = 0;
 
+			// initialize empty matrix of spaces of size rows X cols
 			houses[k].matrix = new char*[houses[k].rows];
 			for (int i = 0; i < houses[k].rows; i++) {
 				houses[k].matrix[i] = new char[houses[k].cols];
@@ -158,12 +228,7 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 					houses[k].matrix[i][j] = ' ';
 			}
 
-			// [amir said at the forum that they will test with houses with rows and columns that match to the matrix
-			// i.e. -> if row and colum says 8 and 10 repsectively, then the matrix will be 8x10
-			// however -> we may need to fill in walls]
-
-			// let's try to take care of more complicated houses ... (for targils 2,3..)
-			
+			// start reading the house matrix
 			getline(myfile, line);
 			for (int i = 0; i < houses[k].rows && myfile; i++)
 			{
@@ -178,7 +243,7 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 						houses[k].dockingRow = i;
 						houses[k].dockingCol = j;
 					}
-					// amir: treat any un recognized character as ' '
+					// treat any unrecognized character as ' '
 					else if (line[j] != 'W' && line[j] != ' ' && (line[j] < '0' || line[j] > '9'))
 						houses[k].matrix[i][j] = ' ';
 
@@ -193,56 +258,68 @@ void handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 				houses[k].error = ERROR_NO_DOCKING_STATIONS;
 				continue;
 			}
-			else if (numOfDockingStations > 1)
+
+			// reaches here if there is at least one docking station
+			// filling the house walls
+			// fill most left and most right sides with walls
+			for (int i = 0; i < houses[k].rows; i++)
 			{
+				if (houses[k].matrix[i][0] == 'D') {
+					numOfDockingStations--;
+				}
+				houses[k].matrix[i][0] = 'W';
+				if (houses[k].matrix[i][houses[k].cols - 1] == 'D') {
+					numOfDockingStations--;
+				}
+				houses[k].matrix[i][houses[k].cols -1] = 'W';
+			}
+			// fill most up and most down sides with walls
+			for (int j = 0; j < houses[k].cols; j++)
+			{
+				if (houses[k].matrix[0][j] == 'D') {
+					numOfDockingStations--;
+				}
+				houses[k].matrix[0][j] = 'W';
+				if (houses[k].matrix[houses[k].rows - 1][j] == 'D') {
+					numOfDockingStations--;
+				}
+				houses[k].matrix[houses[k].rows - 1][j] = 'W';
+			}
+
+			// check if number of dokcing stations is different than 1
+			if (numOfDockingStations == 0) {
+				houses[k].isValidHouse = false;
+				houses[k].error = ERROR_NO_DOCKING_STATIONS;
+				continue;
+			}
+			else if (numOfDockingStations > 1) {
 				houses[k].isValidHouse = false;
 				houses[k].error = ERROR_TOO_MANY_DOCKING_STATIONS;
 				continue;
 			}
 
-			//filling the house walls
-			for (int i = 0; i < houses[k].rows; i++)
-			{
-				if (houses[k].matrix[i][0] == 'D') {
-					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
-					houses[k].isValidHouse = false;
-					break;
-				}
-				houses[k].matrix[i][0] = 'W';
-				if (houses[k].matrix[i][houses[k].cols - 1] == 'D') {
-					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
-					houses[k].isValidHouse = false;
-					break;
-				}
-				houses[k].matrix[i][houses[k].cols -1] = 'W';
-			}
-
-			for (int j = 0; j < houses[k].cols; j++)
-			{
-				if (houses[k].matrix[0][j] == 'D') {
-					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
-					houses[k].isValidHouse = false;
-					break;
-				}
-				houses[k].matrix[0][j] = 'W';
-				if (houses[k].matrix[houses[k].rows - 1][j] == 'D') {
-					houses[k].error = ERROR_OVERRIDE_DOCKING_STATION;
-					houses[k].isValidHouse = false;
-					break;
-				}
-				houses[k].matrix[houses[k].rows - 1][j] = 'W';
-			}
-
-
-			
 			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
 			myfile.close();
 		}
 		else {
 			houses[k].isValidHouse = false;
-			houses[k].error = ERROR_HOUSE_FILE;
+			houses[k].error = ERROR_OPEN_HOUSE_FILE;
 		}
 	}
+
+	bool allMalformed = true;
+	for (int i = 0; i < numOfHouses; i++) {
+		if (houses[i].isValidHouse == true)
+			allMalformed = false;
+	}
+	if (!allMalformed)
+		return 0;
+
+	std::cout << "All house files in target folder " << housePath << " cannot be opened or are invalid:" << std::endl;
+	for (int i = 0; i < numOfHouses; i++) {
+		std::cout << houses[i].houseFileName << ":" << houses[i].error << std::endl;
+	}
+	return -1;
 }
 
 
@@ -269,7 +346,7 @@ int getNumberOfHouses(std::string housePath)
 	}
 	else
 	{
-		std::cout << ERROR_HOUSE_PATH << std::endl;
+		// TODO: figure out if should print usage and exit?
 		return -1;
 	}
 
@@ -299,11 +376,79 @@ int getNumberOfHouses(std::string housePath)
 	}
 	else
 	{
-		std::cout << ERROR_HOUSE_PATH << std::endl;
+		// TODO: figure out if should print usage and exit?
 		return -1;
 	}
 #endif
 	return numOfHouses;
+}
+
+
+
+int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms)
+{
+	return 0;
+}
+
+
+// returns number of house files in housePath directory
+int getNumberOfAlgorithms(std::string algorithmPath)
+{
+	int numOfAlgorithms = 0;
+#ifdef _WIN32
+	WIN32_FIND_DATA fd;
+	std::wstring stemp = stringToWstring(algorithmPath + "*.so");
+	HANDLE hFile = FindFirstFile(stemp.c_str(), &fd);
+	std::wstring tempFileName = L"";
+	std::string fileName = "";
+
+	if (INVALID_HANDLE_VALUE != hFile)
+	{
+		do
+		{
+			tempFileName = std::wstring(fd.cFileName);
+			fileName = std::string(tempFileName.begin(), tempFileName.end());
+			numOfAlgorithms++;
+		} while (FindNextFile(hFile, &fd));
+		FindClose(hFile);
+	}
+	else
+	{
+		// TODO: figure out if should print usage and exit?
+		return -1;
+	}
+
+#else
+	DIR *pDIR;
+	struct dirent *entry;
+	std::string temp = "";
+	if ((pDIR = opendir(housePath.c_str())))
+	{
+		while ((entry = readdir(pDIR)))
+		{
+			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+			{
+				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 3 
+				{
+					temp = entry->d_name;
+					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
+					if (!strcmp(temp.c_str(), ".so"))
+					{
+						numOfAlgorithms++;
+					}
+				}
+
+			}
+		}
+		closedir(pDIR);
+	}
+	else
+	{
+		// TODO: figure out if should print usage and exit?
+		return -1;
+	}
+#endif
+	return numOfAlgorithms;
 }
 
 
@@ -320,4 +465,38 @@ void printHouseWithRobot(House& house)
 			std::cout << std::endl;
 		}
 	}
+}
+
+
+void usageMessage(std::string configPath, std::string housePath, std::string algorithmPath)
+{
+	std::cout << "Usage: simulator";
+	if (!configPath.empty())
+		std::cout << " -config <" << configPath << ">]";
+	if (!housePath.empty())
+		std::cout << " -house_path <" << housePath << ">]";
+	if (!algorithmPath.empty())
+		std::cout << " -algorithm_path <" << algorithmPath << ">]";
+	std::cout << std::endl;
+}
+
+
+void copyHouse(House& dst, House& src)
+{
+	dst.houseFileName = src.houseFileName;
+	dst.houseDescription = src.houseDescription;
+	dst.rows = src.rows;
+	dst.cols = src.cols;
+	dst.matrix = new char*[src.rows];
+	for (int i = 0; i < src.rows; i++) {
+		dst.matrix[i] = new char[src.cols];
+		for (int j = 0; j < src.cols; j++)
+			dst.matrix[i][j] = src.matrix[i][j];
+	}
+	dst.robotRow = src.robotRow;
+	dst.robotCol = src.robotCol;
+	dst.dockingRow = src.dockingRow;
+	dst.dockingCol = src.dockingCol;
+	dst.initialSumOfDirt = src.initialSumOfDirt;
+	dst.sumOfDirt = src.sumOfDirt;
 }

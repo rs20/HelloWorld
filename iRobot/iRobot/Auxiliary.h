@@ -21,21 +21,27 @@
 
 #define defaultConfigPath "config/"
 #define defaultHousePath "house/"
+#define defaultAlgorithmPath "algorithm/"
 #define defaultConfigFile "config.ini"
 
-#define ERROR_HOUSE_FILE "Error opening the house file."
-#define ERROR_CONFIG_FILE "Error opening the config file."
-#define ERROR_HOUSE_PATH "Error: Wrong path for houses directory"
+#define ERROR_OPEN_HOUSE_FILE "cannot open file"
+#define ERROR_CONFIG_FILE1 "config.ini exists in "
+#define ERROR_CONFIG_FILE2 " but cannot be opened"
 #define ERROR_OVERRIDE_DOCKING_STATION "Docking station will be overridden as it's placed under the surrounding walls."
-#define ERROR_NO_DOCKING_STATIONS "No docking stations found."
-#define ERROR_TOO_MANY_DOCKING_STATIONS "Too many docking stations found."
+#define ERROR_NO_DOCKING_STATIONS "missing docking station (no D in house)"
+#define ERROR_TOO_MANY_DOCKING_STATIONS "too many docking stations (more than one D in house)"
 
 std::string handleSlash(const char* path);
 int handleConfigFile(std::string configPath, std::map<std::string, int>& house);
 std::wstring stringToWstring(const std::string& s);
-void handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
+int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
+int getNumberOfAlgorithms(std::string algorithmPath);
+int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithm); // TODO: change it someday soon ...
 void printHouseWithRobot(House& house);
+void usageMessage(std::string configPath, std::string housePath, std::string algorithmPath);
+
+void copyHouse(House& dst, House& src);
 
 std::vector<std::string> split(const std::string &s, char delimiter);
 std::string trim(std::string& str);

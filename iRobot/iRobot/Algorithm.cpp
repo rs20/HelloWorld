@@ -20,10 +20,10 @@ private:
 	int batteryRechargeRate;
 	// note that the algorithm does not have an access to the house (only its sensor).
 public:
-	virtual void setSensor(const AbstractSensor& s) {
+	virtual void setSensor(const AbstractSensor& s) override {
 		sensor = &s;
 	}
-	virtual void setConfiguration(map<string, int> config) {
+	virtual void setConfiguration(map<string, int> config) override {
 		map<string, int>::iterator it;
 		it = config.find("MaxSteps");
 		moreSteps = it->second;
@@ -35,7 +35,7 @@ public:
 		batteryRechargeRate = it->second;
 	}
 	// implement naive selection of direction to move to using the sensor
-	virtual Direction step() {
+	virtual Direction step() override {
 		SensorInformation si = sensor->sense();
 		int numOfOptions = 1; // may always stay in the same place
 		vector<Direction> vec;
@@ -51,7 +51,7 @@ public:
 		int randomStep = rand() % numOfOptions;
 		return vec.at(randomStep);
 	}
-	virtual void aboutToFinish(int stepsTillFinishing) {
+	virtual void aboutToFinish(int stepsTillFinishing) override {
 		moreSteps = stepsTillFinishing;
 	}
 };
