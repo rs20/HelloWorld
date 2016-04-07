@@ -228,6 +228,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				cout.width(10);
 				cout << right << scores[j][i];
 				cout << "|";
+				avg += scores[j][i];
 			}
 
 			avg /= numOfWorkingHouses;
