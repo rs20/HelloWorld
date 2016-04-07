@@ -151,9 +151,9 @@ public:
 	Direction goHome(SensorInformation si) {
 		Direction step;
 		// reminder: order of precedence: (1) east (2) west (3) south (4) north (5) stay
-		if (docking.col < cell.col && si.isWall[0] == false)
+		if (docking.col > cell.col && si.isWall[0] == false)
 			step = Direction::East;
-		else if (docking.col > cell.col && si.isWall[1] == false)
+		else if (docking.col < cell.col && si.isWall[1] == false)
 			step = Direction::West;
 		else if (docking.row < cell.row && si.isWall[2] == false)
 			step = Direction::South;
