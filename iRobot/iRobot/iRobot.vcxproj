@@ -149,6 +149,7 @@
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
     <ClInclude Include="Auxiliary.h" />
+    <ClInclude Include="Cell.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Score.h" />
@@ -158,6 +159,9 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="313178576_A_.cpp" />
+    <ClCompile Include="313178576_B_.cpp" />
+    <ClCompile Include="313178576_C_.cpp" />
     <ClCompile Include="Algorithm.cpp" />
     <ClCompile Include="Auxiliary.cpp" />
     <ClCompile Include="Score.cpp" />

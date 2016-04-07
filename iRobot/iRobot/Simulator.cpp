@@ -92,41 +92,41 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				Direction direction = algorithms[l].step();
 
 				//cleaning dust if there is any.
-				if (curHouses[l].matrix[curHouses[l].robotRow][curHouses[l].robotCol] > '0' && curHouses[l].matrix[curHouses[l].robotRow][curHouses[l].robotCol] <= '9') {
-					curHouses[l].matrix[curHouses[l].robotRow][curHouses[l].robotCol] = curHouses[l].matrix[curHouses[l].robotRow][curHouses[l].robotCol] - 1;
+				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] > '0' && curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] <= '9') {
+					curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] = curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] - 1;
 					curHouses[l].sumOfDirt--;
 				}
 
-				if (curHouses[l].matrix[curHouses[l].robotRow][curHouses[l].robotCol] == 'D') {
+				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] == 'D') {
 					curBattery[l] = MIN(batteryCapacity, curBattery[l] + batteryRechargeRate);
 				}
 
 
 				// consume battery only if did not start the move from the docking station
 				// staying or starting the move from the docking station does not consume battery
-				if (curHouses[l].robotRow != curHouses[l].dockingRow || curHouses[l].robotCol != curHouses[l].dockingCol)
+				if (curHouses[l].robot.row != curHouses[l].docking.row || curHouses[l].robot.col != curHouses[l].docking.col)
 					curBattery[l] -= batteryConsumptionRate;
 
 				switch (direction)
 				{
 				case static_cast<Direction>(0) :
-					curHouses[l].robotCol++;
+					curHouses[l].robot.col++;
 					break;
 				case static_cast<Direction>(1) :
-					curHouses[l].robotCol--;
+					curHouses[l].robot.col--;
 					break;
 				case static_cast<Direction>(2) :
-					curHouses[l].robotRow++;
+					curHouses[l].robot.row++;
 					break;
 				case static_cast<Direction>(3) :
-					curHouses[l].robotRow--;
+					curHouses[l].robot.row--;
 					break;
 				default:
 					break;
 					// do nothing for 'Stay'
 				}
 
-				if (curHouses[l].matrix[curHouses[l].robotRow][curHouses[l].robotCol] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
+				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
 					into_wall[l] = true;
 					if_end[l] = true;
 					finished++;
@@ -139,14 +139,14 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				cout << "Robot Battery: " << curBattery[l] << endl;
 				printHouseWithRobot(curHouses[l]);
 
-				if (curHouses[l].sumOfDirt == 0 && curHouses[l].robotRow == curHouses[l].dockingRow && curHouses[l].robotCol == curHouses[l].dockingCol) {
+				if (curHouses[l].sumOfDirt == 0 && curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) {
 					//cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
 					if_end[l] = true;
 					cur_stage_winners++;
 					if (!is_winner) {
 						is_winner = true;
 						winner_num_steps = simulation_num_steps;
-						max_steps = simulation_num_steps + config["MaxStepsAfterWinner"];
+						max_steps = MIN(max_steps, simulation_num_steps + config["MaxStepsAfterWinner"]);
 					}
 					finished++;
 					positionInComp[l] = cur_position;
@@ -177,7 +177,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		
 		// score the algorithms on the house
 		for (int l = 0; l < numOfAlgorithms; l++) {
-			is_back_in_docking = (curHouses[l].robotRow == curHouses[l].dockingRow && curHouses[l].robotCol == curHouses[l].dockingCol) ? true : false;
+			is_back_in_docking = (curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) ? true : false;
 			if (into_wall[l] == true) // if walked into a wall, score=0
 				scores[k][l] = 0;
 			else if (houses[k].sumOfDirt == 0 && is_back_in_docking)

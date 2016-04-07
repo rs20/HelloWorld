@@ -238,10 +238,8 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 					// found robot's starting point == docking station
 					if (line[j] == 'D') {
 						numOfDockingStations++;
-						houses[k].robotRow = i;
-						houses[k].robotCol = j;
-						houses[k].dockingRow = i;
-						houses[k].dockingCol = j;
+						houses[k].robot = { i, j };
+						houses[k].docking = { i, j };
 					}
 					// treat any unrecognized character as ' '
 					else if (line[j] != 'W' && line[j] != ' ' && (line[j] < '0' || line[j] > '9'))
@@ -457,7 +455,7 @@ void printHouseWithRobot(House& house)
 	if (house.matrix != NULL) {
 		for (int i = 0; i < house.rows; i++) {
 			for (int j = 0; j < house.cols; j++) {
-				if (i == house.robotRow && j == house.robotCol)
+				if (i == house.robot.row && j == house.robot.col)
 					std::cout << 'R' << "";
 				else
 					std::cout << house.matrix[i][j] << "";
@@ -493,10 +491,8 @@ void copyHouse(House& dst, House& src)
 		for (int j = 0; j < src.cols; j++)
 			dst.matrix[i][j] = src.matrix[i][j];
 	}
-	dst.robotRow = src.robotRow;
-	dst.robotCol = src.robotCol;
-	dst.dockingRow = src.dockingRow;
-	dst.dockingCol = src.dockingCol;
+	dst.robot = src.robot;
+	dst.docking = src.docking;
 	dst.initialSumOfDirt = src.initialSumOfDirt;
 	dst.sumOfDirt = src.sumOfDirt;
 }

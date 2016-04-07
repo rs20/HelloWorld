@@ -1,5 +1,6 @@
 // House struct
 #include <string>
+#include "Cell.h"
 
 typedef struct House
 {
@@ -11,10 +12,8 @@ typedef struct House
 	int cols;
 	char** matrix;
 	// information the program figured out
-	int robotRow;
-	int robotCol;
-	int dockingRow;
-	int dockingCol;
+	Cell robot;
+	Cell docking;
 	int initialSumOfDirt;
 	int sumOfDirt;
 	bool isValidHouse; // flag if the house is formatted properly or not

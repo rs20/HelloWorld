@@ -13,6 +13,9 @@
 #define NO_MORE_MOVES "Time's up! No more moves."
 #define INTO_WALL "Robot walked into a wall! Game Over."
 
+#ifndef __MIN_
+#define __MIN
 #define MIN(a,b) (((a)<(b)) ? (a):(b))
+#endif
 
 #define MAX_SCORE 2050
