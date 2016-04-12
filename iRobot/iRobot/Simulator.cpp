@@ -1,10 +1,15 @@
 // Simulation (main,cpp) : Defines the entry point for the console application.
 //
 #include "stdafx.h"
+#include <string>
+#include <vector>
 #include "Auxiliary.h"
 #include "Simulator.h"
 #include "Score.h"
+#include "Sensor.cpp"
 #include <iomanip>
+
+#define DEBUG 0
 
 // assumes all algorithms that reach here are fine
 void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config)
@@ -12,7 +17,10 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 	// matrix (vector of vectors) of scores: scores[0] - scores of the first house on every algorithm and so on
 	vector<vector<int>> scores(numOfHouses, vector<int>(numOfAlgorithms));
 	bool is_back_in_docking;
-	vector<Algorithm> algorithms(numOfAlgorithms); // TODO: this should be in the signature of the function (main sends it)
+	//vector<AbstractAlgorithm> algorithms(numOfAlgorithms); // TODO: this should be in the signature of the function (main sends it)
+	AbstractAlgorithm** algorithms = new AbstractAlgorithm*[numOfAlgorithms];
+	vector<string> algorithmsNames;
+	algorithmsNames.push_back("313178576_A_");
 
 	// specific to house
 	int max_steps;
@@ -42,7 +50,6 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			}
 		}
 
-
 		// start the game:
 		vector<bool> if_end(numOfAlgorithms);
 		vector<bool> into_wall(numOfAlgorithms);
@@ -50,12 +57,12 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		vector<int> numSteps(numOfAlgorithms);
 		vector<int> positionInComp(numOfAlgorithms, 10); // default position is 10
 		bool is_winner = false;
-		int winner_num_steps;
+		int winner_num_steps = -1;
 		int cur_stage_winners = 0;
 		int cur_position = 1;
 		int finished = 0;
 
-		// automatic win for each algorithm
+		// automatic win for each algorithm if the dirt in the house == 0
 		if (houses[k].sumOfDirt == 0) {
 			for (int i = 0; i < numOfAlgorithms; i++)
 				scores[k][i] = MAX_SCORE;
@@ -64,13 +71,22 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 
 		// make a copy of the current house for every algorithm and assign a sensor to it
 		curHouses = new House[numOfAlgorithms];
-		vector<Sensor*> sensors(numOfAlgorithms);
+		vector<Sensor> sensors;
+		//vector<Sensor*> sensors(numOfAlgorithms);
 		for (int l = 0; l < numOfAlgorithms; l++) {
 			copyHouse(curHouses[l], houses[k]);
-			sensors[l] = new Sensor(&curHouses[l]);
-			algorithms[l].setSensor(*(sensors[l]));
-			algorithms[l].setConfiguration(config);
+			sensors.emplace_back(Sensor(&curHouses[l]));
+			//sensors[l](&curHouses[l]);
+			//algorithms[l].setSensor(*(sensors[l]));
+			//algorithms[l]->setSensor(sensors[l]);
+			//algorithms[l]->setConfiguration(config);
 		}
+
+		_313178576_A alg_a;
+		alg_a.setSensor(sensors[0]);
+		alg_a.setConfiguration(config);
+		algorithms[0] = &alg_a;
+
 
 		max_steps = houses[k].maxSteps;
 		batteryCapacity = (config.find("BatteryCapacity"))->second;
@@ -80,7 +96,6 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		batteryRechargeRate = (config.find("BatteryRechargeRate"))->second;
 		simulation_num_steps = 0;
 
-
 		while (true) {
 			simulation_num_steps++;
 			//Sleep(1000);
@@ -89,7 +104,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				if (if_end[l] == true)
 					continue;
 
-				Direction direction = algorithms[l].step();
+				Direction direction = algorithms[l]->step();
 
 				//cleaning dust if there is any.
 				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] > '0' && curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] <= '9') {
@@ -130,7 +145,8 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 					into_wall[l] = true;
 					if_end[l] = true;
 					finished++;
-					//cout << INTO_WALL << endl;
+					if (DEBUG)
+						cout << INTO_WALL << endl;
 					continue;
 				}
 
@@ -140,7 +156,8 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				printHouseWithRobot(curHouses[l]);
 
 				if (curHouses[l].sumOfDirt == 0 && curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) {
-					//cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
+					if (DEBUG)
+						cout << "Robot wins (cleaned the whole house in the limited time)." << endl; //  for debug purpose
 					if_end[l] = true;
 					cur_stage_winners++;
 					if (!is_winner) {
@@ -154,7 +171,8 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 					continue;
 				}
 				if (curBattery[l] <= 0) {
-					//cout << BATTERY_DEAD << endl; // for debug purpose
+					if (DEBUG)
+						cout << BATTERY_DEAD << endl; // for debug purpose
 					if_end[l] = true;
 					finished++;
 					continue;
@@ -164,7 +182,8 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				cur_position = MIN(4, cur_position + cur_stage_winners);
 			cur_stage_winners = 0;
 			if (finished == numOfAlgorithms || simulation_num_steps == max_steps) {
-				//cout << NO_MORE_MOVES << endl;  // for debug purpose
+				if (DEBUG)
+					cout << NO_MORE_MOVES << endl;  // for debug purpose
 				for (int l = 0; l < numOfAlgorithms; l++) {
 					// if didn't change -> he didn't win. set number of steps to simulation steps
 					if (numSteps[l] == 0) {
@@ -176,6 +195,9 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		}
 		
 		// score the algorithms on the house
+		// if none won -> winner num steps = simulation num steps
+		if (winner_num_steps == -1)
+			winner_num_steps = simulation_num_steps;
 		for (int l = 0; l < numOfAlgorithms; l++) {
 			is_back_in_docking = (curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) ? true : false;
 			if (into_wall[l] == true) // if walked into a wall, score=0
@@ -192,7 +214,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			for (int i = 0; i < curHouses[l].rows; i++)
 				delete[] curHouses[l].matrix[i];
 			delete[] curHouses[l].matrix;
-			delete sensors[l];
+			//delete sensors[l];
 		}
 		delete[] curHouses;
 	}
@@ -201,11 +223,14 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 	if (numOfHouses > 0) {
 		// print first row
 		int dashes = 15 + 11 * (numOfWorkingHouses + 1);
-		cout << string(dashes, '-');
+		cout << string(dashes, '-') << endl;
 		cout << "|" << string(13, ' ') << "|";
 		for (int i = 0; i < numOfHouses; i++) {
 			if (houses[i].isValidHouse) {
-				string trimmed = (houses[i].houseFileName).substr(0, 9);
+				int index = houses[i].houseFileName.find_last_of('.');
+				string name = (houses[i].houseFileName).substr(0, index);
+				name = name.substr(6, name.size() - 6);
+				string trimmed = name.substr(0, 9);
 				cout.width(10);
 				cout << left << trimmed;
 				cout << "|";
@@ -214,11 +239,13 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		cout << "AVG       |" << endl;
 		// start printing scores for algorithms
 		for (int i = 0; i < numOfAlgorithms; i++) {
+			cout << string(dashes, '-') << endl;
 			// if algorithm invalid: continue
 			
 			// else:
 			// print algorithm file name.. scores... avg
 			// cout << TODO: print algorithm file name
+			cout << "|" << algorithmsNames.at(i) << " |";
 			double avg = 0;
 
 			for (int j = 0; j < numOfHouses; j++) {
@@ -236,6 +263,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			cout << right << std::fixed << std::setprecision(2) << avg;
 			cout << "|" << endl;
 		}
+		cout << string(dashes, '-') << endl;
 	}
 
 	getchar();
@@ -246,6 +274,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		delete[] houses[k].matrix;
 	}
 	delete[] houses;
+	delete[] algorithms;
 }
 
 
@@ -299,6 +328,7 @@ int main(int argc, const char* argv[])
 		return -1;
 
 	// handle aglorithm files
+	/*
 	numOfAlgorithms = getNumberOfAlgorithms((flags[2]).c_str());
 	if (numOfAlgorithms == -1)
 	{
@@ -314,7 +344,7 @@ int main(int argc, const char* argv[])
 	}
 
 	handle = handleAlgorithmFiles(flags[2], numOfAlgorithms);
-
+	
 	//startSimulation(houses, algorithms, numOfHouses, numOfAlgorithms, config);
 
 	for (int i = 0; i < numOfHouses; i++)
@@ -336,6 +366,7 @@ int main(int argc, const char* argv[])
 			// print errors of algorithms
 		}
 	}
-
+	*/
+	startSimulation(houses, numOfHouses, 1, config);
 	return 0;
 }

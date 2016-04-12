@@ -204,14 +204,14 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			}
 			houses[k].maxSteps = atoi(line.c_str());
 			getline(myfile, line);
-			if (atoi(line.c_str()) < 0) {
+			if (atoi(line.c_str()) <= 0) {
 				houses[k].isValidHouse = false;
 				houses[k].error = "line number 3 in house file shall be a positive number, found: " + atoi(line.c_str());
 				continue;
 			}
 			houses[k].rows = atoi(line.c_str());
 			getline(myfile, line);
-			if (atoi(line.c_str()) < 0) {
+			if (atoi(line.c_str()) <= 0) {
 				houses[k].isValidHouse = false;
 				houses[k].error = "line number 4 in house file shall be a positive number, found: " + atoi(line.c_str());
 				continue;
@@ -449,7 +449,7 @@ int getNumberOfAlgorithms(std::string algorithmPath)
 	return numOfAlgorithms;
 }
 
-
+/*
 void printHouseWithRobot(House& house)
 {
 	if (house.matrix != NULL) {
@@ -459,6 +459,22 @@ void printHouseWithRobot(House& house)
 					std::cout << 'R' << "";
 				else
 					std::cout << house.matrix[i][j] << "";
+			}
+			std::cout << std::endl;
+		}
+	}
+}
+*/
+
+void printHouseWithRobot(House& house)
+{
+	if (house.matrix != NULL) {
+		for (int i = 0; i < house.rows; i++) {
+			for (int j = 0; j < house.cols; j++) {
+				if (i == house.robot.row && j == house.robot.col)
+					std::cout << 'R' << " ";
+				else
+					std::cout << house.matrix[i][j] << " ";
 			}
 			std::cout << std::endl;
 		}

@@ -2,7 +2,11 @@
 #include "stdafx.h"
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
-#include "Sensor.cpp"
+#include "AbstractSensor.h"
+#ifndef __CELL_H
+#define __CEL_H
+#include "Cell.h"
+#endif
 #include <stdlib.h>
 #include <list>
 
@@ -18,7 +22,7 @@ Second Algorithm B:
 3. hence, is able to reset path to docking station if entered docking station once again
 4. hence, knows if the battery was charged.
 5. logic of steps: - if current spot has dirt in it, then stay
-                   - else, go to the first direction available
+                   - else, go to the first direction different than the last step made that is available
 6. if the move chosen is opposite to the last move made -> remove both from the path (the algorithm is not that dumb)
 */
 
@@ -28,8 +32,9 @@ Second Algorithm B:
 class _313178576_B : public AbstractAlgorithm
 {
 private:
+	//list<const AbstractSensor*> sensors;
 	const AbstractSensor* sensor;
-	int moreSteps;
+	int moreSteps = -1;
 	int batteryCapacity;
 	int curBattery;
 	int batteryConsumptionRate;
@@ -42,14 +47,16 @@ private:
 	Cell cell = { 0, 0 };
 	// note that the algorithm does not have an access to the house (only its sensor).
 public:
+	// set new sensor -> algorithm knows: starting to work on a new house
 	virtual void setSensor(const AbstractSensor& s) override {
+		//sensors.push_back(&s);
 		sensor = &s;
-	}
-	// was not specified in AbstractAlgorithm
-	// however, since the config.ini file does not include max steps, but each house is
-	// the algorithm needs a way to find out how many more steps it may commit
-	void setMaxSteps(int maxSteps) {
-		moreSteps = maxSteps;
+		moreSteps = -1;
+		curBattery = batteryCapacity;
+		ending = false;
+		path.clear();
+		distanceToDocking = 0;
+		cell = { 0, 0 };
 	}
 	virtual void setConfiguration(map<string, int> config) override {
 		map<string, int>::iterator it;
@@ -73,7 +80,7 @@ public:
 				step = Direction::Stay;
 			// get the last move made
 			else {
-				step = path.back();
+				step = oppositeMove(path.back());
 				path.pop_back();
 			}
 			distanceToDocking--;
@@ -85,33 +92,61 @@ public:
 				step = Direction::Stay;
 			// get the last move made
 			else {
-				step = path.back();
+				step = oppositeMove(path.back());
 				path.pop_back();
 			}
 			distanceToDocking--;
 		}
 		// continue cleaning
 		else {
+			//SensorInformation si = sensors.back()->sense();
 			SensorInformation si = sensor->sense();
-			if (si.dirtLevel > 0)
+
+			// move into cell without staying does clean the spot anyway
+			if (si.dirtLevel > 1)
 				step = Direction::Stay;
 			else {
-				// pick first available direction to move to
-				if (si.isWall[0] == false)
-					step = Direction::East;
-				else if (si.isWall[1] == false)
-					step = Direction::West;
-				else if (si.isWall[2] == false)
-					step = Direction::South;
-				else if (si.isWall[3] == false)
-					step = Direction::North;
-				else
-					step = Direction::Stay;
+				int directions = 0;
+				// count available moves
+				for (int i = 0; i < 4; i++)
+					directions += (si.isWall[i]) ? 0 : 1;
+
+				// if more than one available -> do not repeat last move
+				Direction lastStep;
+				if (!path.empty() && directions > 1)
+					lastStep = path.back();
+
+				// pick first available direction to move to different than the last step made
+				// choose last step only if it is the only available move
+				if (!path.empty() && directions > 1) {
+					if (si.isWall[0] == false && oppositeMove(lastStep) != Direction::East)
+						step = Direction::East;
+					else if (si.isWall[1] == false && oppositeMove(lastStep) != Direction::West)
+						step = Direction::West;
+					else if (si.isWall[2] == false && oppositeMove(lastStep) != Direction::South)
+						step = Direction::South;
+					else if (si.isWall[3] == false && oppositeMove(lastStep) != Direction::North)
+						step = Direction::North;
+					else
+						step = Direction::Stay;
+				}
+				else {
+					if (si.isWall[0] == false)
+						step = Direction::East;
+					else if (si.isWall[1] == false)
+						step = Direction::West;
+					else if (si.isWall[2] == false)
+						step = Direction::South;
+					else if (si.isWall[3] == false)
+						step = Direction::North;
+					else
+						step = Direction::Stay;
+				}
 
 				// if moved (!= stay) -> add move to path and increment distance to docking
 				if (step != Direction::Stay) {
 					// if step is the opposite of the last move -> remove both moves (2 last moves) from path list
-					if (oppositeMove(step, path.back())) {
+					if (!path.empty() && isOppositeMove(step, path.back())) {
 						path.pop_back();
 						distanceToDocking--;
 					}
@@ -123,13 +158,14 @@ public:
 
 				// if returned to docking station: empty path and distance to docking
 				if (cell.row == docking.row && cell.col == docking.col) {
-					path.empty();
+					path.clear();
 					distanceToDocking = 0;
 				}
 			}
 		}
 		updateSpot(step);
-		moreSteps--;
+		if (moreSteps != -1)
+			moreSteps--;
 		// consume battery only if did not start the move from the docking station
 		if (cell.row != docking.row || cell.col != docking.col)
 			curBattery -= batteryConsumptionRate;
@@ -139,25 +175,44 @@ public:
 		moreSteps = stepsTillFinishing;
 	}
 
+private:
 	bool shouldReturnDocking(int moreStepsAvailable, int distanceToDocking, int curBattery, int batteryConsumptionRate) {
 		int movesToMake = curBattery / batteryConsumptionRate; // 1.9 -> 1
-		movesToMake = MIN(movesToMake, moreSteps);
+															   // if more steps is up to date -> take into consideration
+		if (moreSteps != -1)
+			movesToMake = MIN(movesToMake, moreSteps);
 		// ___
 		//|_|_|
 		//|D|R|
 		// robot distance to docking is 1, but has 2 more moves to make
 		// if it will go north -> he won't be able to return to the docking station
-		if (distanceToDocking == movesToMake || distanceToDocking == movesToMake + 1)
+		if (distanceToDocking >= movesToMake - 1)
 			return true;
 		return false;
 	}
-	bool oppositeMove(Direction d1, Direction d2) {
+	bool isOppositeMove(Direction d1, Direction d2) {
 		if (d1 == Direction::East && d2 == Direction::West ||
 			d1 == Direction::West && d2 == Direction::East ||
 			d1 == Direction::South && d2 == Direction::North ||
 			d1 == Direction::North && d2 == Direction::South)
 			return true;
 		return false;
+	}
+	Direction oppositeMove(Direction d) {
+		// 0->east, 1->west, 2->south, 3->north, 4->stay
+		switch (d)
+		{
+		case static_cast<Direction>(0) :
+			return Direction::West;
+		case static_cast<Direction>(1) :
+			return Direction::East;
+		case static_cast<Direction>(2) :
+			return Direction::North;
+		case static_cast<Direction>(3) :
+			return Direction::South;
+		default:
+			return Direction::Stay;
+		}
 	}
 	void updateSpot(Direction step) {
 		switch (step)
