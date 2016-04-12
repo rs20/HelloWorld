@@ -4,8 +4,8 @@
 #include <errno.h>
 
 //#include "Algorithm.cpp"
-#include "313178576_A_.cpp"
-//#include "313178576_B_.cpp"
+//#include "313178576_A_.cpp"
+#include "313178576_B_.cpp"
 //#include "313178576_C_.cpp"
 
 

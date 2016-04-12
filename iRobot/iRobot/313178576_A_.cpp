@@ -11,9 +11,6 @@
 #include <stdlib.h>
 #include <list>
 
-// remove after debugging
-#include <iostream>
-
 #ifndef __MIN_
 #define __MIN
 #define MIN(a,b) (((a)<(b)) ? (a):(b))

@@ -9,7 +9,7 @@
 #include "AbstractAlgorithm.h"
 #endif
 #ifndef __CELL_H
-#define __CEL_H
+#define __CELL_H
 #include "Cell.h"
 #endif
 #include <stdlib.h>
@@ -62,6 +62,7 @@ public:
 		curBattery = batteryCapacity;
 		ending = false;
 		cell = { 0, 0 };
+		docking = { 0, 0 };
 		lastStep = Direction::Stay;
 	}
 	virtual void setConfiguration(map<string, int> config) override {
@@ -137,6 +138,8 @@ public:
 				}
 			}
 		}
+		if (step != Direction::Stay)
+			lastStep = step;
 		updateSpot(step);
 		if (moreSteps != -1)
 			moreSteps--;

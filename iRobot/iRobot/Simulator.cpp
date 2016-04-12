@@ -20,7 +20,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 	//vector<AbstractAlgorithm> algorithms(numOfAlgorithms); // TODO: this should be in the signature of the function (main sends it)
 	AbstractAlgorithm** algorithms = new AbstractAlgorithm*[numOfAlgorithms];
 	vector<string> algorithmsNames;
-	algorithmsNames.push_back("313178576_A_");
+	algorithmsNames.push_back("313178576_C_");
 
 	// specific to house
 	int max_steps;
@@ -82,11 +82,27 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			//algorithms[l]->setConfiguration(config);
 		}
 
+
+
+		// CHOOSE YOUR ALGORITHM
+		/*
 		_313178576_A alg_a;
 		alg_a.setSensor(sensors[0]);
 		alg_a.setConfiguration(config);
 		algorithms[0] = &alg_a;
-
+		*/
+		
+		_313178576_B alg_b;
+		alg_b.setSensor(sensors[0]);
+		alg_b.setConfiguration(config);
+		algorithms[0] = &alg_b;
+		
+		/*
+		_313178576_C alg_c;
+		alg_c.setSensor(sensors[0]);
+		alg_c.setConfiguration(config);
+		algorithms[0] = &alg_c;
+		*/
 
 		max_steps = houses[k].maxSteps;
 		batteryCapacity = (config.find("BatteryCapacity"))->second;
@@ -96,6 +112,9 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		batteryRechargeRate = (config.find("BatteryRechargeRate"))->second;
 		simulation_num_steps = 0;
 
+		cout << endl;
+		printHouseWithRobot(houses[k]);
+		
 		while (true) {
 			simulation_num_steps++;
 			//Sleep(1000);

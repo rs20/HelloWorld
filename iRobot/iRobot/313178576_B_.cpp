@@ -1,10 +1,15 @@
 
 #include "stdafx.h"
+#ifndef __DIRECTION_H
+#define __DIRECTION_H
 #include "Direction.h"
+#endif
+#ifndef __ABSTRACT_ALGORITHM_H
+#define __ABSTRACT_ALGORITHM_H
 #include "AbstractAlgorithm.h"
-#include "AbstractSensor.h"
+#endif
 #ifndef __CELL_H
-#define __CEL_H
+#define __CELL_H
 #include "Cell.h"
 #endif
 #include <stdlib.h>
@@ -14,6 +19,9 @@
 #define __MIN
 #define MIN(a,b) (((a)<(b)) ? (a):(b))
 #endif
+
+//remove after debugging
+#include <iostream>
 
 /*
 Second Algorithm B:
@@ -41,6 +49,7 @@ private:
 	int batteryRechargeRate;
 	bool ending = false;
 	list<Direction> path; // remember path in order to return to docking station
+	Direction lastStep = Direction::Stay;
 	int distanceToDocking = 0;
 	// this is a relative position of the docking since the algorithm does not know the house dimensions / docking station's spot
 	Cell docking = { 0, 0 };
@@ -57,6 +66,8 @@ public:
 		path.clear();
 		distanceToDocking = 0;
 		cell = { 0, 0 };
+		docking = { 0, 0 };
+		lastStep = Direction::Stay;
 	}
 	virtual void setConfiguration(map<string, int> config) override {
 		map<string, int>::iterator it;
@@ -72,6 +83,7 @@ public:
 		// first, if started the move from the docking station -> charge battery
 		if (cell.row == docking.row && cell.col == docking.col)
 			curBattery += batteryRechargeRate;
+
 		Direction step;
 		// go back to docking station
 		if (ending) {
@@ -111,14 +123,11 @@ public:
 				for (int i = 0; i < 4; i++)
 					directions += (si.isWall[i]) ? 0 : 1;
 
-				// if more than one available -> do not repeat last move
-				Direction lastStep;
-				if (!path.empty() && directions > 1)
-					lastStep = path.back();
+				// if more than one move is available -> do not repeat last move made
 
 				// pick first available direction to move to different than the last step made
 				// choose last step only if it is the only available move
-				if (!path.empty() && directions > 1) {
+				if (directions > 1) {
 					if (si.isWall[0] == false && oppositeMove(lastStep) != Direction::East)
 						step = Direction::East;
 					else if (si.isWall[1] == false && oppositeMove(lastStep) != Direction::West)
@@ -145,6 +154,7 @@ public:
 
 				// if moved (!= stay) -> add move to path and increment distance to docking
 				if (step != Direction::Stay) {
+					lastStep = step;
 					// if step is the opposite of the last move -> remove both moves (2 last moves) from path list
 					if (!path.empty() && isOppositeMove(step, path.back())) {
 						path.pop_back();
@@ -155,15 +165,14 @@ public:
 						distanceToDocking++;
 					}
 				}
-
-				// if returned to docking station: empty path and distance to docking
-				if (cell.row == docking.row && cell.col == docking.col) {
-					path.clear();
-					distanceToDocking = 0;
-				}
 			}
 		}
 		updateSpot(step);
+		// if returned to docking station: empty path and distance to docking
+		if (cell.row == docking.row && cell.col == docking.col) {
+			path.clear();
+			distanceToDocking = 0;
+		}
 		if (moreSteps != -1)
 			moreSteps--;
 		// consume battery only if did not start the move from the docking station

@@ -1,6 +1,9 @@
 // House struct
 #include <string>
+#ifndef __CELL_H
+#define __CELL_H
 #include "Cell.h"
+#endif
 
 typedef struct House
 {
