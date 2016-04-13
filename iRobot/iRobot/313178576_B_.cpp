@@ -20,9 +20,6 @@
 #define MIN(a,b) (((a)<(b)) ? (a):(b))
 #endif
 
-//remove after debugging
-#include <iostream>
-
 /*
 Second Algorithm B:
 1. rememebrs the path to the docking station.
@@ -48,7 +45,10 @@ private:
 	int batteryConsumptionRate;
 	int batteryRechargeRate;
 	bool ending = false;
-	list<Direction> path; // remember path in order to return to docking station
+	//list<Direction> path;
+	list<pair<Cell,int>> path; // remember path in order to return to docking station.
+	// note that path does not include current position (only one before)
+	// path is a pair of cell and distance to docking from that cell
 	Direction lastStep = Direction::Stay;
 	int distanceToDocking = 0;
 	// this is a relative position of the docking since the algorithm does not know the house dimensions / docking station's spot
@@ -83,6 +83,7 @@ public:
 		// first, if started the move from the docking station -> charge battery
 		if (cell.row == docking.row && cell.col == docking.col)
 			curBattery += batteryRechargeRate;
+		curBattery = MIN(curBattery, batteryCapacity);
 
 		Direction step;
 		// go back to docking station
@@ -92,7 +93,7 @@ public:
 				step = Direction::Stay;
 			// get the last move made
 			else {
-				step = oppositeMove(path.back());
+				step = directionFromCells(cell, path.back().first);
 				path.pop_back();
 			}
 			distanceToDocking--;
@@ -104,7 +105,7 @@ public:
 				step = Direction::Stay;
 			// get the last move made
 			else {
-				step = oppositeMove(path.back());
+				step = directionFromCells(cell, path.back().first);
 				path.pop_back();
 			}
 			distanceToDocking--;
@@ -155,29 +156,45 @@ public:
 				// if moved (!= stay) -> add move to path and increment distance to docking
 				if (step != Direction::Stay) {
 					lastStep = step;
-					// if step is the opposite of the last move -> remove both moves (2 last moves) from path list
-					if (!path.empty() && isOppositeMove(step, path.back())) {
+					// if step is the opposite of the last move -> remove both moves (2 last moves) from path list (returned to last cell)
+					if (!path.empty() && cell.row == path.back().first.row && cell.col == path.back().first.col) {
 						path.pop_back();
 						distanceToDocking--;
 					}
 					else {
-						path.push_back(step);
+						path.emplace_back(cell, distanceToDocking); // insert current position (before move) to path list
 						distanceToDocking++;
 					}
 				}
 			}
 		}
+
+		// consume battery only if did not start the move from the docking station
+		if (cell.row != docking.row || cell.col != docking.col)
+			curBattery -= batteryConsumptionRate;
+		
 		updateSpot(step);
 		// if returned to docking station: empty path and distance to docking
 		if (cell.row == docking.row && cell.col == docking.col) {
 			path.clear();
 			distanceToDocking = 0;
 		}
+		// if visits some spot it already has visited! remove all cells (including the moved to cell) from first time visited the cell
+		for (list<pair<Cell,int>>::iterator it = path.begin(); it != path.end(); it++) {
+			// if reaches some old visited location -> delete all cells starting from that cell
+			if (it->first.row == cell.row && it->first.col == cell.col) {
+				while (it != path.end())
+					path.erase(it++);
+
+				if (path.empty())
+					distanceToDocking = 0;
+				else
+					distanceToDocking = path.back().second; // get distance to docking from the last cell
+				break;
+			}
+		}
 		if (moreSteps != -1)
 			moreSteps--;
-		// consume battery only if did not start the move from the docking station
-		if (cell.row != docking.row || cell.col != docking.col)
-			curBattery -= batteryConsumptionRate;
 		return step;
 	}
 	virtual void aboutToFinish(int stepsTillFinishing) override {
@@ -242,5 +259,16 @@ private:
 			break;
 			// do nothing for 'Stay'
 		}
+	}
+	// assumes src and dst are exactly one step far from each other
+	Direction directionFromCells(Cell src, Cell dst) {
+		if (src.row == dst.row - 1)
+			return Direction::South;
+		else if (src.row == dst.row + 1)
+			return Direction::North;
+		else if (src.col == dst.col - 1)
+			return Direction::East;
+		else
+			return Direction::West;
 	}
 };

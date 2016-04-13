@@ -20,6 +20,9 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 	//vector<AbstractAlgorithm> algorithms(numOfAlgorithms); // TODO: this should be in the signature of the function (main sends it)
 	AbstractAlgorithm** algorithms = new AbstractAlgorithm*[numOfAlgorithms];
 	vector<string> algorithmsNames;
+
+	algorithmsNames.push_back("313178576_A_");
+	algorithmsNames.push_back("313178576_B_");
 	algorithmsNames.push_back("313178576_C_");
 
 	// specific to house
@@ -117,7 +120,8 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		
 		while (true) {
 			simulation_num_steps++;
-			//Sleep(1000);
+			//Sleep(3000);
+			getchar();
 			// simulate one step for each algorithm
 			for (int l = 0; l < numOfAlgorithms; l++) {
 				if (if_end[l] == true)

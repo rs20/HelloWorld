@@ -81,6 +81,8 @@ public:
 		// first, if started the move from the docking station -> charge battery
 		if (cell.row == docking.row && cell.col == docking.col)
 			curBattery += batteryRechargeRate;
+		curBattery = MIN(curBattery, batteryCapacity);
+
 		Direction step;
 		// go back to docking station
 		if (ending) {
@@ -140,12 +142,15 @@ public:
 		}
 		if (step != Direction::Stay)
 			lastStep = step;
-		updateSpot(step);
-		if (moreSteps != -1)
-			moreSteps--;
+
 		// consume battery only if did not start the move from the docking station
 		if (cell.row != docking.row || cell.col != docking.col)
 			curBattery -= batteryConsumptionRate;
+
+		updateSpot(step);
+		if (moreSteps != -1)
+			moreSteps--;
+
 		return step;
 	}
 	virtual void aboutToFinish(int stepsTillFinishing) override {
