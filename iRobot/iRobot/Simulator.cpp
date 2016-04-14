@@ -315,8 +315,10 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 
 int main(int argc, const char* argv[])
 {
-	int numOfHouses, numOfAlgorithms;
-	int numOfWorkingHouses = 0, numOfWorkingAlgorithms;
+	int numOfHouses;
+	//int numOfAlgorithms;
+	//int numOfWorkingHouses = 0;
+	//int numOfWorkingAlgorithms;
 	House* houses;
 	map<string, int> config;
 	// vector of length 3: [0] holds config path, [1] holds house path and [2] holds algorithm path

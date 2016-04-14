@@ -180,7 +180,8 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	else
 	{
 		printf("%s\n", "Error in house path");
-		return;
+		delete[] fileNames;
+		return -1;
 	}
 #endif
 
@@ -310,13 +311,16 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		if (houses[i].isValidHouse == true)
 			allMalformed = false;
 	}
-	if (!allMalformed)
+	if (!allMalformed) {
+		delete[] fileNames;
 		return 0;
+	}
 
 	std::cout << "All house files in target folder " << housePath << " cannot be opened or are invalid:" << std::endl;
 	for (int i = 0; i < numOfHouses; i++) {
 		std::cout << houses[i].houseFileName << ":" << houses[i].error << std::endl;
 	}
+	delete[] fileNames;
 	return -1;
 }
 
@@ -420,7 +424,7 @@ int getNumberOfAlgorithms(std::string algorithmPath)
 	DIR *pDIR;
 	struct dirent *entry;
 	std::string temp = "";
-	if ((pDIR = opendir(housePath.c_str())))
+	if ((pDIR = opendir(algorithmPath.c_str())))
 	{
 		while ((entry = readdir(pDIR)))
 		{

@@ -173,10 +173,10 @@ private:
 		return false;
 	}
 	bool isOppositeMove(Direction d1, Direction d2) {
-		if (d1 == Direction::East && d2 == Direction::West ||
-			d1 == Direction::West && d2 == Direction::East ||
-			d1 == Direction::South && d2 == Direction::North ||
-			d1 == Direction::North && d2 == Direction::South)
+		if (((d1 == Direction::East) && (d2 == Direction::West)) ||
+			((d1 == Direction::West) && (d2 == Direction::East)) ||
+			((d1 == Direction::South) && (d2 == Direction::North)) ||
+			((d1 == Direction::North) && (d2 == Direction::South)))
 			return true;
 		return false;
 	}
