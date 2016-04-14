@@ -9,7 +9,7 @@
 #include "Sensor.cpp"
 #include <iomanip>
 
-#define DEBUG 0
+#define DEBUG 1
 
 // assumes all algorithms that reach here are fine
 void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config)
@@ -44,12 +44,17 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		numOfWorkingHouses++;
 
 		// just checking to see if it worked (print the house) - for debug purpose
-		if (houses[k].matrix != NULL) {
-			for (int i = 0; i < houses[k].rows; i++) {
-				for (int j = 0; j < houses[k].cols; j++) {
-					cout << houses[k].matrix[i][j] << " ";
+		string space = " ";
+		if (houses[k].rows > 60 || houses[k].cols > 40)
+			space = "";
+		if (DEBUG) {
+			if (houses[k].matrix != NULL) {
+				for (int i = 0; i < houses[k].rows; i++) {
+					for (int j = 0; j < houses[k].cols; j++) {
+						cout << houses[k].matrix[i][j] << space;
+					}
+					cout << endl;
 				}
-				cout << endl;
 			}
 		}
 
@@ -88,24 +93,24 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 
 
 		// CHOOSE YOUR ALGORITHM
-		/*
+		
 		_313178576_A alg_a;
 		alg_a.setSensor(sensors[0]);
 		alg_a.setConfiguration(config);
 		algorithms[0] = &alg_a;
-		*/
+		
 		
 		_313178576_B alg_b;
-		alg_b.setSensor(sensors[0]);
+		alg_b.setSensor(sensors[1]);
 		alg_b.setConfiguration(config);
-		algorithms[0] = &alg_b;
+		algorithms[1] = &alg_b;
 		
-		/*
+		
 		_313178576_C alg_c;
-		alg_c.setSensor(sensors[0]);
+		alg_c.setSensor(sensors[2]);
 		alg_c.setConfiguration(config);
-		algorithms[0] = &alg_c;
-		*/
+		algorithms[2] = &alg_c;
+		
 
 		max_steps = houses[k].maxSteps;
 		batteryCapacity = (config.find("BatteryCapacity"))->second;
@@ -115,13 +120,18 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		batteryRechargeRate = (config.find("BatteryRechargeRate"))->second;
 		simulation_num_steps = 0;
 
-		cout << endl;
-		printHouseWithRobot(houses[k]);
-		
+		if (DEBUG) {
+			cout << endl;
+			printHouseWithRobot(houses[k]);
+		}
+
 		while (true) {
 			simulation_num_steps++;
-			//Sleep(3000);
-			getchar();
+			if (DEBUG) {
+				getchar();
+				cout << "Step " << simulation_num_steps << endl;
+				//Sleep(3000);
+			}
 			// simulate one step for each algorithm
 			for (int l = 0; l < numOfAlgorithms; l++) {
 				if (if_end[l] == true)
@@ -174,9 +184,10 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				}
 
 				// for debug purpose
-				cout << "Step " << simulation_num_steps << endl;
-				cout << "Robot Battery: " << curBattery[l] << endl;
-				printHouseWithRobot(curHouses[l]);
+				if (DEBUG) {
+					cout << "Robot(" << (algorithmsNames[l]) << ") Battery: " << curBattery[l] << endl;
+					printHouseWithRobot(curHouses[l]);
+				}
 
 				if (curHouses[l].sumOfDirt == 0 && curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) {
 					if (DEBUG)
@@ -230,7 +241,8 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			else
 				scores[k][l] = score(10, winner_num_steps, numSteps[l], curHouses[l].initialSumOfDirt - curHouses[l].sumOfDirt, curHouses[l].initialSumOfDirt, is_back_in_docking);
 		}
-		getchar();
+		if (DEBUG)
+			getchar();
 
 		// delete cur houses and sensors
 		for (int l = 0; l < numOfHouses; l++) {
@@ -390,6 +402,7 @@ int main(int argc, const char* argv[])
 		}
 	}
 	*/
-	startSimulation(houses, numOfHouses, 1, config);
+	//startSimulation(houses, numOfHouses, 1, config);
+	startSimulation(houses, numOfHouses, 3, config);
 	return 0;
 }

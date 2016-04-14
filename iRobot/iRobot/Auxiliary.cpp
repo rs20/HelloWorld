@@ -468,13 +468,18 @@ void printHouseWithRobot(House& house)
 
 void printHouseWithRobot(House& house)
 {
+	// just for debugging
+	// print size according to number of rows
+	std::string space = " ";
+	if (house.rows > 60 || house.cols > 40)
+		space = "";
 	if (house.matrix != NULL) {
 		for (int i = 0; i < house.rows; i++) {
 			for (int j = 0; j < house.cols; j++) {
 				if (i == house.robot.row && j == house.robot.col)
-					std::cout << 'R' << " ";
+					std::cout << 'R' << space;
 				else
-					std::cout << house.matrix[i][j] << " ";
+					std::cout << house.matrix[i][j] << space;
 			}
 			std::cout << std::endl;
 		}
