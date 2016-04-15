@@ -111,7 +111,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		alg_c.setConfiguration(config);
 		algorithms[2] = &alg_c;
 		
-
+		bool already_alerted_more_steps = false;
 		max_steps = houses[k].maxSteps;
 		batteryCapacity = (config.find("BatteryCapacity"))->second;
 		for (int i = 0; i < numOfAlgorithms; i++)
@@ -215,6 +215,37 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			if (cur_stage_winners > 0)
 				cur_position = MIN(4, cur_position + cur_stage_winners);
 			cur_stage_winners = 0;
+
+			// - MAX-STEPS-AFTER-WINNNER ALERT -
+			if (!already_alerted_more_steps) {
+				// let all the other algorithms (that did not win in the this last move) know 'MaxStepsAfterWinner'
+				// alret them only at the first round when some algorithm wins
+				// the condition is true ONLY on the first round when some algorithm wins
+				if (winner_num_steps == simulation_num_steps) {
+					// if someone wins, max_steps is already updated in the loop, so it's simply a subtraction
+					int alert_more_steps = max_steps - simulation_num_steps;
+					for (int l = 0; l < numOfAlgorithms; l++) {
+						// alert only algorithms that did not win
+						if (if_end[l] == false) {
+							algorithms[l]->aboutToFinish(alert_more_steps);
+						}
+					}
+					already_alerted_more_steps = true;
+					if (DEBUG)
+						cout << endl << "ALERT TO ALL ALGORITHMS: more steps = " << alert_more_steps << endl;
+				}
+				// other case -> none won but there are 'maxstepsafterwinner' more steps till the end
+				// alert all algorithms
+				else if (!is_winner && ((max_steps - simulation_num_steps) == config["MaxStepsAfterWinner"])) {
+					for (int l = 0; l < numOfAlgorithms; l++) {
+						algorithms[l]->aboutToFinish(config["MaxStepsAfterWinner"]);
+					}
+					already_alerted_more_steps = true;
+					if (DEBUG)
+						cout << endl << "ALERT TO ALL ALGORITHMS: more steps = " << config["MaxStepsAfterWinner"] << endl;
+				}
+			}
+
 			if (finished == numOfAlgorithms || simulation_num_steps == max_steps) {
 				if (DEBUG)
 					cout << NO_MORE_MOVES << endl;  // for debug purpose
