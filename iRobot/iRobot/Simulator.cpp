@@ -10,6 +10,7 @@
 #include <iomanip>
 
 #define DEBUG 1
+#define SHOW_SIMULATION_HOUSES 1
 
 // assumes all algorithms that reach here are fine
 void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config)
@@ -127,7 +128,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 
 		while (true) {
 			simulation_num_steps++;
-			if (DEBUG) {
+			if (SHOW_SIMULATION_HOUSES) {
 				getchar();
 				cout << "Step " << simulation_num_steps << endl;
 				//Sleep(3000);
@@ -184,7 +185,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 				}
 
 				// for debug purpose
-				if (DEBUG) {
+				if (SHOW_SIMULATION_HOUSES) {
 					cout << "Robot(" << (algorithmsNames[l]) << ") Battery: " << curBattery[l] << endl;
 					printHouseWithRobot(curHouses[l]);
 				}

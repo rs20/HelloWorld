@@ -30,6 +30,8 @@ Third Algorithm C:
    and only after that (stuck / got to the same column as the docking station) it will make north steps
    and if stuck again, back to west steps and so on until reaches docking station
    if stuck on both direction, just stay at the same spot
+4. logic of steps: - if current spot has dirt in it, then stay
+				   - else, go to the first direction (order of precedence: east->west->south->north) different than the last step made that is available
 */
 
 // Pro: may be more efficient
@@ -84,24 +86,27 @@ public:
 		curBattery = MIN(curBattery, batteryCapacity);
 
 		Direction step;
-		// go back to docking station
-		if (ending) {
-			// reached docking, waiting for end of game
-			if (cell.row == docking.row && cell.col == docking.col)
-				step = Direction::Stay;
-			else
-				step = goHome(si);
+		// go back to docking station - get the last move made
+		if (ending && (distanceToDocking() != 0)) {
+			step = goHome(si);
 		}
-		else if (shouldReturnDocking(moreSteps, curBattery, batteryConsumptionRate)) {
+		else if (ending && (distanceToDocking() == 0) && !goOnCleaningAgain()) {
+			// reached docking, waiting for end of game/recharge
+			step = Direction::Stay;
+			//distanceToDocking==0
+		}
+		else if (!ending && shouldReturnDocking()) {
 			ending = true;
 			// reached docking, waiting for end of game
-			if (cell.row == docking.row && cell.col == docking.col)
+			if (distanceToDocking() == 0)
 				step = Direction::Stay;
+			// continue going home
 			else
 				step = goHome(si);
 		}
-		// continue cleaning
+		// continue cleaning OR reaches here if already back in docking station but has enough battery to continue cleaning again
 		else {
+			ending = false;
 			// move into cell without staying does clean the spot anyway
 			if (si.dirtLevel > 1)
 				step = Direction::Stay;
@@ -158,7 +163,7 @@ public:
 	}
 
 private:
-	bool shouldReturnDocking(int moreStepsAvailable, int curBattery, int batteryConsumptionRate) {
+	bool shouldReturnDocking() {
 		int movesToMake = curBattery / batteryConsumptionRate; // 1.9 -> 1
 		if (moreSteps != -1)
 			movesToMake = MIN(movesToMake, moreSteps);
@@ -167,9 +172,26 @@ private:
 		//|D|R|
 		// robot distance to docking is 1, but has 2 more moves to make
 		// if it will go north -> he won't be able to return to the docking station
-		if (distanceToDocking() >= movesToMake - 1)
+		// its '-2' because we don't want to return to the docking station exactly with empty battery -> this means we DIE.
+		// so go back with extra for one move which means you will be able to continue after recharging yourself
+		if (distanceToDocking() >= movesToMake - 2)
 			return true;
 		return false;
+	}
+	bool goOnCleaningAgain() {
+		// don't know how many more moves yet -> check battery recharged enough
+		if (moreSteps == -1) {
+			// charged enough
+			if (curBattery > batteryCapacity / 2)
+				return true;
+			return false;
+		}
+		// check both moreSteps and curBattery and decide according to both
+		else {
+			if ((curBattery > batteryCapacity / 2) && (moreSteps >= 2))
+				return true;
+			return false;
+		}
 	}
 	void updateSpot(Direction step) {
 		switch (step)
@@ -218,9 +240,9 @@ private:
 			step = Direction::East;
 		else if (docking.col < cell.col && si.isWall[1] == false)
 			step = Direction::West;
-		else if (docking.row < cell.row && si.isWall[2] == false)
+		else if (docking.row > cell.row && si.isWall[2] == false)
 			step = Direction::South;
-		else if (docking.row > cell.row && si.isWall[3] == false)
+		else if (docking.row < cell.row && si.isWall[3] == false)
 			step = Direction::North;
 		else
 			step = Direction::Stay;

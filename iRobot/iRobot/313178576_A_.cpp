@@ -23,7 +23,7 @@ First Algorithm A:
 3. hence, is not able to reset path to docking station if entered docking station not on purpose
 4. hence, does not know if the battery was charged.
 5. logic of steps: - if current spot has dirt in it, then stay
-                   - else, go to the first direction different than the last step made that is available
+                   - else, go to direction (in new order precedences: east->south->west->north) that is different than the last move made
 6. if the move chosen is opposite to the last move made -> remove both from the path (the algorithm is not that dumb)
 */
 
@@ -67,26 +67,31 @@ public:
 		// go back to docking station
 		if (ending) {
 			// reached docking, waiting for end of game
-			if (path.empty())
+			if (path.empty()) {
 				step = Direction::Stay;
+				// distanceToDocking==0
+			}
 			// get the last move made
 			else {
 				step = oppositeMove(path.back());
 				path.pop_back();
+				distanceToDocking--;
 			}
-			distanceToDocking--;
 		}
-		else if (shouldReturnDocking(moreSteps, distanceToDocking, curBattery, batteryConsumptionRate)) {
+		else if (shouldReturnDocking()) {
 			ending = true;
 			// reached docking, waiting for end of game
-			if (path.empty())
+			if (path.empty()) {
 				step = Direction::Stay;
+				// distanceToDocking==0
+				distanceToDocking = 0;
+			}
 			// get the last move made
 			else {
 				step = oppositeMove(path.back());
 				path.pop_back();
+				distanceToDocking--;
 			}
-			distanceToDocking--;
 		}
 		// continue cleaning
 		else {
@@ -107,15 +112,15 @@ public:
 				if (!path.empty() && directions > 1)
 					lastStep = path.back();
 
-				// pick first available direction to move to different than the last step made
+				// pick second available direction to move to different than the last step made
 				// choose last step only if it is the only available move
 				if (!path.empty() && directions > 1) {
 					if (si.isWall[0] == false && oppositeMove(lastStep) != Direction::East)
 						step = Direction::East;
-					else if (si.isWall[1] == false && oppositeMove(lastStep) != Direction::West)
-						step = Direction::West;
 					else if (si.isWall[2] == false && oppositeMove(lastStep) != Direction::South)
 						step = Direction::South;
+					else if (si.isWall[1] == false && oppositeMove(lastStep) != Direction::West)
+						step = Direction::West;
 					else if (si.isWall[3] == false && oppositeMove(lastStep) != Direction::North)
 						step = Direction::North;
 					else
@@ -124,10 +129,10 @@ public:
 				else {
 					if (si.isWall[0] == false)
 						step = Direction::East;
-					else if (si.isWall[1] == false)
-						step = Direction::West;
 					else if (si.isWall[2] == false)
 						step = Direction::South;
+					else if (si.isWall[1] == false)
+						step = Direction::West;
 					else if (si.isWall[3] == false)
 						step = Direction::North;
 					else
@@ -158,7 +163,7 @@ public:
 	}
 
 private:
-	bool shouldReturnDocking(int moreStepsAvailable, int distanceToDocking, int curBattery, int batteryConsumptionRate) {
+	bool shouldReturnDocking() {
 		int movesToMake = curBattery / batteryConsumptionRate; // 1.9 -> 1
 		// if more steps is up to date -> take into consideration
 		if (moreSteps != -1)
@@ -168,7 +173,9 @@ private:
 		//|D|R|
 		// robot distance to docking is 1, but has 2 more moves to make
 		// if it will go north -> he won't be able to return to the docking station
-		if (distanceToDocking >= movesToMake - 1)
+		// its '-2' because we don't want to return to the docking station exactly with empty battery -> this means we DIE.
+		// so go back with extra for one move which means you will be able to continue after recharging yourself
+		if (distanceToDocking >= movesToMake - 2)
 			return true;
 		return false;
 	}

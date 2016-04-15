@@ -27,7 +27,7 @@ Second Algorithm B:
 3. hence, is able to reset path to docking station if entered docking station once again
 4. hence, knows if the battery was charged.
 5. logic of steps: - if current spot has dirt in it, then stay
-                   - else, go to the first direction different than the last step made that is available
+                   - else, go to the first direction (order of precedence: east->west->south->north) different than the last step made that is available
 6. if the move chosen is opposite to the last move made -> remove both from the path (the algorithm is not that dumb)
 */
 
@@ -86,33 +86,36 @@ public:
 		curBattery = MIN(curBattery, batteryCapacity);
 
 		Direction step;
-		// go back to docking station
-		if (ending) {
-			// reached docking, waiting for end of game
-			if (path.empty())
-				step = Direction::Stay;
-			// get the last move made
-			else {
-				step = directionFromCells(cell, path.back().first);
-				path.pop_back();
-			}
+		// go back to docking station - get the last move made
+		if (ending && !path.empty()) {
+			step = directionFromCells(cell, path.back().first);
+			path.pop_back();
 			distanceToDocking--;
 		}
-		else if (shouldReturnDocking(moreSteps, distanceToDocking, curBattery, batteryConsumptionRate)) {
+		else if (ending && path.empty() && !goOnCleaningAgain()) {
+			// reached docking, waiting for end of game/recharge
+			step = Direction::Stay;
+			//distanceToDocking==0
+		}
+		else if (!ending && shouldReturnDocking()) {
 			ending = true;
 			// reached docking, waiting for end of game
-			if (path.empty())
+			if (path.empty()) {
 				step = Direction::Stay;
+				// distanceToDocking==0
+				distanceToDocking = 0;
+			}
 			// get the last move made
 			else {
 				step = directionFromCells(cell, path.back().first);
 				path.pop_back();
+				distanceToDocking--;
 			}
-			distanceToDocking--;
 		}
-		// continue cleaning
+		// continue cleaning OR reaches here if already back in docking station but has enough battery to continue cleaning again
 		else {
 			//SensorInformation si = sensors.back()->sense();
+			ending = false;
 			SensorInformation si = sensor->sense();
 
 			// move into cell without staying does clean the spot anyway
@@ -202,7 +205,7 @@ public:
 	}
 
 private:
-	bool shouldReturnDocking(int moreStepsAvailable, int distanceToDocking, int curBattery, int batteryConsumptionRate) {
+	bool shouldReturnDocking() {
 		int movesToMake = curBattery / batteryConsumptionRate; // 1.9 -> 1
 															   // if more steps is up to date -> take into consideration
 		if (moreSteps != -1)
@@ -212,9 +215,26 @@ private:
 		//|D|R|
 		// robot distance to docking is 1, but has 2 more moves to make
 		// if it will go north -> he won't be able to return to the docking station
-		if (distanceToDocking >= movesToMake - 1)
+		// its '-2' because we don't want to return to the docking station exactly with empty battery -> this means we DIE.
+		// so go back with extra for one move which means you will be able to continue after recharging yourself
+		if (distanceToDocking >= movesToMake - 2)
 			return true;
 		return false;
+	}
+	bool goOnCleaningAgain() {
+		// don't know how many more moves yet -> check battery recharged enough
+		if (moreSteps == -1) {
+			// charged enough
+			if (curBattery > batteryCapacity / 2)
+				return true;
+			return false;
+		}
+		// check both moreSteps and curBattery and decide according to both
+		else {
+			if ((curBattery > batteryCapacity / 2) && (moreSteps >= 2))
+				return true;
+			return false;
+		}
 	}
 	bool isOppositeMove(Direction d1, Direction d2) {
 		if (((d1 == Direction::East) && (d2 == Direction::West)) ||
