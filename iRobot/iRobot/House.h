@@ -7,7 +7,7 @@
 
 typedef struct House
 {
-	// inofrmation based on .house file
+	// information based on .house file
 	std::string houseFileName;
 	std::string houseDescription;
 	int maxSteps;

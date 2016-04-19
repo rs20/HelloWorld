@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string>
 
+#include "313178576_A_.h"
+#include "313178576_B_.h"
+#include "313178576_C_.h"
+
 // make sure the path is ending with "/" (except from the empty path)
 std::string handleSlash(const char* path)
 {
@@ -316,7 +320,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		return 0;
 	}
 
-	std::cout << "All house files in target folder " << housePath << " cannot be opened or are invalid:" << std::endl;
+	std::cout << "All house files in target folder " << "'" << housePath << "'" << " cannot be opened or are invalid:" << std::endl;
 	for (int i = 0; i < numOfHouses; i++) {
 		std::cout << houses[i].houseFileName << ":" << houses[i].error << std::endl;
 	}
@@ -387,14 +391,111 @@ int getNumberOfHouses(std::string housePath)
 
 
 
-int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms)
+int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, s_Algorithm* algorithms)
 {
-	return 0;
+	int i=0;
+	std::string* fileNames = new std::string[numOfPotentialAlgorithms];
+	bool anyValidAlgorithm = false;
+#ifdef _WIN32
+	delete[] fileNames;
+#else
+	DIR *pDIR;
+	struct dirent *entry;
+	std::string temp = "";
+	if ((pDIR = opendir(algorithmPath.c_str())))
+	{
+		while ((entry = readdir(pDIR)))
+		{
+			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+			{
+				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 6 
+				{
+					temp = entry->d_name;
+					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
+					if (!strcmp(temp.c_str(), ".so"))
+					{
+						fileNames[i] = entry->d_name;
+						i++;
+					}
+				}
+
+			}
+		}
+		closedir(pDIR);
+	}
+	else
+	{
+		printf("%s\n", "Error in house path");
+		delete[] fileNames;
+		return -1;
+	}
+#endif
+
+#ifdef _WIN32
+	algorithms[0].algorithmFileName = "_313178576_A";
+	algorithms[1].algorithmFileName = "_313178576_B";
+	algorithms[2].algorithmFileName = "_313178576_C";
+
+	algorithms[0].algo = new _313178576_A;
+	algorithms[1].algo = new _313178576_B;
+	algorithms[2].algo = new _313178576_C;
+
+	algorithms[0].isValidAlgorithm = true;
+	algorithms[1].isValidAlgorithm = true;
+	algorithms[2].isValidAlgorithm = true;
+
+	return 1;
+#else
+	string tempAlgoPath;
+	typedef AbstractAlgorithm* (*algo)();
+
+	for (i = 0; i < numOfPotentialAlgorithms; i++)
+	{
+		algorithms[i].algorithmFileName = fileNames[i];
+		tempAlgoPath = algorithmPath+fileNames[i];
+		algorithms[i].hndl = dlopen(tempAlgoPath.c_str(), RTLD_NOW);
+		if (algorithms[i].hndl == NULL)
+		{
+			algorithms[i].isValidAlgorithm = false;
+			algorithms[i].error = NOT_VALID_SO;
+			continue;
+		}
+
+		algo algorithm = (algo) dlsym(algorithms[i].hndl, "maker");
+		if (algorithm == NULL)
+		{
+			algorithms[i].isValidAlgorithm = false;
+			algorithms[i].error = NOT_VALID_ALGORITHM;
+			continue;
+		}
+
+		algorithms[i].algo = algorithm(); 
+		algorithms[i].isValidAlgorithm = true;
+		anyValidAlgorithm = true;
+	}
+
+
+	delete[] fileNames;
+
+	if (anyValidAlgorithm)
+	{
+		return 1;
+	}
+	else
+	{
+		std::cout << "All algorithm files in target folder " << "'" << algorithmPath << "'" << " cannot be opened or are invalid:" << std::endl;
+		for (int i = 0; i < numOfPotentialAlgorithms; i++) {
+			std::cout << algorithms[i].algorithmFileName << ":" << algorithms[i].error << std::endl;
+		}
+		return -1;
+	}
+
+#endif	
 }
 
 
 // returns number of house files in housePath directory
-int getNumberOfAlgorithms(std::string algorithmPath)
+int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 {
 	int numOfAlgorithms = 0;
 #ifdef _WIN32

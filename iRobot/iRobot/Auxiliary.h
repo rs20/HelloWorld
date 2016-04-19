@@ -5,6 +5,13 @@
 #include <string.h>
 #include <map>
 #include <vector>
+#include "Direction.h"
+#include "AbstractAlgorithm.h"
+#include "S_Algorithm.h"
+
+
+
+
 #ifndef __HOUSE_H
 #define __HOUSE_H
 #include "House.h"
@@ -16,12 +23,13 @@
 #else
 #include <unistd.h>
 #include <dirent.h>
+#include <dlfcn.h>
 #endif
 
 
 #define defaultConfigPath "config/"
 #define defaultHousePath "house/"
-#define defaultAlgorithmPath "algorithm/"
+#define defaultAlgorithmPath "Algorithms/"
 #define defaultConfigFile "config.ini"
 
 #define ERROR_OPEN_HOUSE_FILE "cannot open file"
@@ -31,13 +39,17 @@
 #define ERROR_NO_DOCKING_STATIONS "missing docking station (no D in house)"
 #define ERROR_TOO_MANY_DOCKING_STATIONS "too many docking stations (more than one D in house)"
 
+#define NOT_VALID_SO "file cannot be loaded or is not a valid .so"
+#define NOT_VALID_ALGORITHM "valid .so, but no algorithm was registered after loading it"
+
+
 std::string handleSlash(const char* path);
 int handleConfigFile(std::string configPath, std::map<std::string, int>& house);
 std::wstring stringToWstring(const std::string& s);
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
-int getNumberOfAlgorithms(std::string algorithmPath);
-int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithm); // TODO: change it someday soon ...
+int getNumberOfPotentialAlgorithms(std::string algorithmPath);
+int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, s_Algorithm* algorithms);
 void printHouseWithRobot(House& house);
 void usageMessage(std::string configPath, std::string housePath, std::string algorithmPath);
 
