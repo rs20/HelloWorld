@@ -1,43 +1,30 @@
-// Sensor.cpp
 #include "stdafx.h"
 
-#include "AbstractSensor.h"
+#include "Sensor.h"
 
-#ifndef __HOUSE_H
-#define __HOUSE_H
-#include "House.h"
-#endif
-
-class Sensor : public AbstractSensor
-{
-private:
-	House* house;
-public:
-	// pass the house to the sensor (by reference)
-	Sensor(House *h) {
-		house = h;
-	}
-	virtual SensorInformation sense() const override {
-		SensorInformation si;
-		char dirt = house->matrix[house->robot.row][house->robot.col];
-		if (dirt >= '0' && dirt <= '9')
-			si.dirtLevel = dirt - '0';
-		else // dirt = ' ' / 'D' (0 dirt in docking station)
-			si.dirtLevel = 0;
-		for (int i = 0; i <= 3; i++)
-			si.isWall[i] = false;
-		// east
-		if (house->matrix[house->robot.row][house->robot.col + 1] == 'W')
-			si.isWall[0] = true;
-		// west
-		if (house->matrix[house->robot.row][house->robot.col - 1] == 'W')
-			si.isWall[1] = true;
-		// south
-		if (house->matrix[house->robot.row + 1][house->robot.col] == 'W')
-			si.isWall[2] = true;
-		// north
-		if (house->matrix[house->robot.row - 1][house->robot.col] == 'W')
-			si.isWall[3] = true;
-		return si;
-	}
-};
+Sensor::Sensor(House *h) {
+	house = h;
+}
+SensorInformation Sensor::sense() const {
+	SensorInformation si;
+	char dirt = house->matrix[house->robot.row][house->robot.col];
+	if (dirt >= '0' && dirt <= '9')
+		si.dirtLevel = dirt - '0';
+	else // dirt = ' ' / 'D' (0 dirt in docking station)
+		si.dirtLevel = 0;
+	for (int i = 0; i <= 3; i++)
+		si.isWall[i] = false;
+	// east
+	if (house->matrix[house->robot.row][house->robot.col + 1] == 'W')
+		si.isWall[0] = true;
+	// west
+	if (house->matrix[house->robot.row][house->robot.col - 1] == 'W')
+		si.isWall[1] = true;
+	// south
+	if (house->matrix[house->robot.row + 1][house->robot.col] == 'W')
+		si.isWall[2] = true;
+	// north
+	if (house->matrix[house->robot.row - 1][house->robot.col] == 'W')
+		si.isWall[3] = true;
+	return si;
+}

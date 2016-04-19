@@ -5,17 +5,18 @@
 #include <string.h>
 #include <map>
 #include <vector>
+
 #include "Direction.h"
-#include "AbstractAlgorithm.h"
 #include "S_Algorithm.h"
-
-
-
-
-#ifndef __HOUSE_H
-#define __HOUSE_H
 #include "House.h"
+
+#ifndef __MIN_
+#define __MIN_
+#define MIN(a,b) (((a)<(b)) ? (a):(b))
 #endif
+
+#define MAX_SCORE 2050
+
 
 // include for sleep
 #ifdef _WIN32
@@ -41,6 +42,13 @@
 
 #define NOT_VALID_SO "file cannot be loaded or is not a valid .so"
 #define NOT_VALID_ALGORITHM "valid .so, but no algorithm was registered after loading it"
+
+#define MORE_THAN_6_ARGUMENTS "Expecting maximum of 6 arguments, instead got "
+#define WRONG_ARGUMENTS_NUM "Incorrect number of arguments"
+#define WRONG_ARGUMENTS "Incorrect use of flag; only '-config', '-house_path' and 'algorithm_path' flags are acceptable"
+#define BATTERY_DEAD "Battery's Dead! Game Over."
+#define NO_MORE_MOVES "Time's up! No more moves."
+#define INTO_WALL "Robot walked into a wall! Game Over."
 
 
 std::string handleSlash(const char* path);

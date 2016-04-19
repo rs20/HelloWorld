@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := simulator
 
 # place here your source files
-src = Sensor.cpp Simulator.cpp Score.cpp Auxiliary.cpp Algorithm.cpp
+src = Sensor.cpp Simulator.cpp Auxiliary.cpp
 obj = $(src:.cpp=.o)
 
 CXXFLAGS = -std=c++11 -g -ldl -Wall -O2 -pedantic -pthread

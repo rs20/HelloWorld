@@ -1,25 +1,8 @@
-
 #include "stdafx.h"
-#ifndef __DIRECTION_H
-#define __DIRECTION_H
-#include "Direction.h"
-#endif
-#ifndef __ABSTRACT_ALGORITHM_H
-#define __ABSTRACT_ALGORITHM_H
-#include "AbstractAlgorithm.h"
-#endif
-#ifndef __CELL_H
-#define __CELL_H
-#include "Cell.h"
-#endif
+
 #include <stdlib.h>
 #include <list>
 #include "313178576_B_.h"
-
-#ifndef __MIN_
-#define __MIN
-#define MIN(a,b) (((a)<(b)) ? (a):(b))
-#endif
 
 /*
 Second Algorithm B:

@@ -1,9 +1,11 @@
+#ifndef __HOUSE__H
+#define __HOUSE__H
+
 // House struct
 #include <string>
-#ifndef __CELL_H
-#define __CELL_H
+
 #include "Cell.h"
-#endif
+
 
 typedef struct House
 {
@@ -22,3 +24,5 @@ typedef struct House
 	bool isValidHouse; // flag if the house is formatted properly or not
 	std::string error;
 } House;
+
+#endif //__HOUSE__H

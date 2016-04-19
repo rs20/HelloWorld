@@ -1,17 +1,10 @@
 #ifndef __ALGORITHM_A_H
 #define __ALGORITHM_A_H
 
-
-#ifndef __DIRECTION_H
-#define __DIRECTION_H
-#include "Direction.h"
-#endif
-#ifndef __ABSTRACT_ALGORITHM_H
-#define __ABSTRACT_ALGORITHM_H
-#include "AbstractAlgorithm.h"
-#endif
 #include <stdlib.h>
 #include <list>
+
+#include "Direction.h"
 #include "AbstractAlgorithm.h"
 
 #ifndef __MIN_

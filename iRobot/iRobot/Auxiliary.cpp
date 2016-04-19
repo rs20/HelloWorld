@@ -1,11 +1,17 @@
 #include "stdafx.h"
+
 #include "Auxiliary.h"
 #include <stdlib.h>
 #include <string>
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Before we give in the files -> should delete these, and everything that dependens on
+// ... _313178576_X algorithm in this file (Auxiliary.cpp)
+// only used for debugging on windows
 #include "313178576_A_.h"
 #include "313178576_B_.h"
 #include "313178576_C_.h"
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // make sure the path is ending with "/" (except from the empty path)
 std::string handleSlash(const char* path)

@@ -156,6 +156,7 @@
     <ClInclude Include="Direction.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Score.h" />
+    <ClInclude Include="Sensor.h" />
     <ClInclude Include="SensorInformation.h" />
     <ClInclude Include="Simulator.h" />
     <ClInclude Include="stdafx.h" />
@@ -166,9 +167,7 @@
     <ClCompile Include="313178576_A_.cpp" />
     <ClCompile Include="313178576_B_.cpp" />
     <ClCompile Include="313178576_C_.cpp" />
-    <ClCompile Include="Algorithm.cpp" />
     <ClCompile Include="Auxiliary.cpp" />
-    <ClCompile Include="Score.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="Sensor.cpp" />
     <ClCompile Include="stdafx.cpp">

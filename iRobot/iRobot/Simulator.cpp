@@ -1,21 +1,18 @@
-// Simulation (main,cpp) : Defines the entry point for the console application.
 #include "stdafx.h"
+// Simulation (main,cpp) : Defines the entry point for the console application.
+
 #include <string>
 #include <vector>
 #include <list>
-#include "Direction.h"
-#include "S_Algorithm.h"
-#include "Simulator.h"
-#include "Auxiliary.h"
-#include "Score.h"
-#include "Sensor.cpp"
 #include <iomanip>
 
-#define DEBUG 1
+#include "Simulator.h"
+
+#define DEBUG 0
 #define SHOW_SIMULATION_HOUSES 0
 
 // assumes all algorithms that reach here are fine
-void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, s_Algorithm* algorithms)
+void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, s_Algorithm* algorithms)
 {
 	// matrix (vector of vectors) of scores: scores[0] - scores of the first house on every algorithm and so on
 	vector<vector<int>> scores(numOfHouses, vector<int>(numOfAlgorithms));
@@ -302,8 +299,10 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 			
 			// else:
 			// print algorithm file name.. scores... avg
-			// cout << TODO: print algorithm file name
-			cout << "|" << algorithms[i].algorithmFileName << " |";
+			// cout << TODO: print algorithm file name without .so ENDING
+			int index = algorithms[i].algorithmFileName.find(".so");
+			string name = algorithms[i].algorithmFileName.substr(0, index);
+			cout << "|" << name << " |";
 			double avg = 0;
 
 			for (int j = 0; j < numOfHouses; j++) {
@@ -324,7 +323,10 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 		cout << string(dashes, '-') << endl;
 	}
 
+#ifndef __linux__
+	// pause on windows
 	getchar();
+#endif
 	// free houses
 	for (int k = 0; k < numOfHouses; k++) {
 		for (int i = 0; i < houses[k].rows; i++)
@@ -359,6 +361,7 @@ void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<st
 
 int main(int argc, const char* argv[])
 {
+	Simulator simulator;
 	int numOfHouses;
 	int numOfPotentialAlgorithms;
 	House* houses;
@@ -366,7 +369,7 @@ int main(int argc, const char* argv[])
 	map<string, int> config;
 	// vector of length 3: [0] holds config path, [1] holds house path and [2] holds algorithm path
 	// if not specified, place default
-	vector<string> flags{defaultConfigPath, defaultHousePath, defaultAlgorithmPath};
+	vector<string> flags{ defaultConfigPath, defaultHousePath, defaultAlgorithmPath };
 
 	// only 1/3/5/7 arguments are acceptable (1/3/5 hold the flags, 2/4/6 hold the corresponding directories)
 	if (argc == 2 || argc == 4 || argc == 6 || argc > 7) {
@@ -375,11 +378,11 @@ int main(int argc, const char* argv[])
 	}
 	for (int i = 1; i < argc; i += 2) {
 		if (!strcmp(argv[i], "-config"))
-			flags[0] = argv[i+1];
+			flags[0] = argv[i + 1];
 		else if (!strcmp(argv[i], "-house_path"))
-			flags[1] = argv[i+1];
+			flags[1] = argv[i + 1];
 		else if (!strcmp(argv[i], "-algorithm_path"))
-			flags[2] = argv[i+1];
+			flags[2] = argv[i + 1];
 		else {
 			cout << WRONG_ARGUMENTS << endl;
 			return -1;
@@ -408,7 +411,7 @@ int main(int argc, const char* argv[])
 		return -1;
 
 	// handle algorithm files
-	
+
 	numOfPotentialAlgorithms = getNumberOfPotentialAlgorithms(flags[2]);
 	if (numOfPotentialAlgorithms == -1)
 	{
@@ -437,7 +440,7 @@ int main(int argc, const char* argv[])
 		delete[] houses;
 		usageMessage(flags[0], flags[1], flags[2]); // do we need it ????????????????????????????????????????????????????????????????????????????????????????????
 
-		// free instance
+													// free instance
 		for (int k = 0; k < numOfPotentialAlgorithms; k++) {
 			if (algorithms[k].isValidAlgorithm)
 			{
@@ -459,6 +462,6 @@ int main(int argc, const char* argv[])
 	}
 
 
-	startSimulation(houses, numOfHouses, numOfPotentialAlgorithms, config, algorithms);
+	simulator.startSimulation(houses, numOfHouses, numOfPotentialAlgorithms, config, algorithms);
 	return 0;
 }

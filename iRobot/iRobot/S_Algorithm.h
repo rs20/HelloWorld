@@ -1,8 +1,8 @@
-
 #ifndef __S_ALGORIGHTM_H
 #define __S_ALGORIGHTM_H
 
 #include <string>
+
 #include "AbstractAlgorithm.h"
 
 typedef struct s_Algorithm
@@ -16,4 +16,4 @@ typedef struct s_Algorithm
 	std::string error;
 } s_Algorithm;
 
-#endif
+#endif // __S_ALGORITHM_H
