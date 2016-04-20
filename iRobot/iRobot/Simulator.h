@@ -9,5 +9,5 @@
 
 class Simulator {
 public:
-	void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, s_Algorithm* algorithms);
+	void startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, S_Algorithm* algorithms);
 };

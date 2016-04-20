@@ -1,5 +1,5 @@
-#include "stdafx.h"
 // Simulation (main,cpp) : Defines the entry point for the console application.
+//#include "stdafx.h"
 
 #include <string>
 #include <vector>
@@ -12,10 +12,11 @@
 #define SHOW_SIMULATION_HOUSES 0
 
 // assumes all algorithms that reach here are fine
-void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, s_Algorithm* algorithms)
+void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, S_Algorithm* algorithms)
 {
 	// matrix (vector of vectors) of scores: scores[0] - scores of the first house on every algorithm and so on
 	vector<vector<int>> scores(numOfHouses, vector<int>(numOfAlgorithms));
+	vector<string> walkingIntoWallsErrors;
 	bool is_back_in_docking;
 
 	// specific to house
@@ -73,14 +74,9 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 		// make a copy of the current house for every algorithm and assign a sensor to it
 		curHouses = new House[numOfAlgorithms];
 		vector<Sensor> sensors;
-		//vector<Sensor*> sensors(numOfAlgorithms);
 		for (int l = 0; l < numOfAlgorithms; l++) {
 			copyHouse(curHouses[l], houses[k]);
 			sensors.emplace_back(Sensor(&curHouses[l]));
-			//sensors[l](&curHouses[l]);
-			//algorithms[l].setSensor(*(sensors[l]));
-			//algorithms[l]->setSensor(sensors[l]);
-			//algorithms[l]->setConfiguration(config);
 		}
 
 		
@@ -160,6 +156,19 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 					into_wall[l] = true;
 					if_end[l] = true;
 					finished++;
+					// make the error note to be printed later (at the end after all other errors)
+					int index = algorithms[l].algorithmFileName.find(".so");
+					string name = algorithms[l].algorithmFileName.substr(0, index);
+					string wallError = "Algorithm ";
+					wallError += name;
+					wallError += " when running on House ";
+					index = houses[l].houseFileName.find_last_of('.');
+					name = (houses[l].houseFileName).substr(0, index);
+					name = name.substr(6, name.size() - 6);
+					wallError += name;
+					wallError += " went on a wall in step ";
+					wallError += to_string(simulation_num_steps);
+					walkingIntoWallsErrors.emplace_back(wallError);
 					if (DEBUG)
 						cout << INTO_WALL << endl;
 					continue;
@@ -263,7 +272,7 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 			getchar();
 
 		// delete cur houses and sensors
-		for (int l = 0; l < numOfHouses; l++) {
+		for (int l = 0; l < numOfAlgorithms; l++) {
 			for (int i = 0; i < curHouses[l].rows; i++)
 				delete[] curHouses[l].matrix[i];
 			delete[] curHouses[l].matrix;
@@ -327,6 +336,38 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 	// pause on windows
 	getchar();
 #endif
+
+
+	// print Errors
+
+	int numOfWorkingAlgorithms = 0;
+	for (int i = 0; i < numOfAlgorithms; i++)
+		if (algorithms[i].isValidAlgorithm)
+			numOfWorkingAlgorithms++;
+
+	// if there were errors: print an empty single new line that would seperate the results table from the error list
+	if (numOfHouses != numOfWorkingHouses || numOfAlgorithms != numOfWorkingAlgorithms || walkingIntoWallsErrors.size() > 0) {
+		cout << endl;
+		cout << "Errors:" << endl;
+		// print all house errors
+		for (int i = 0; i < numOfHouses; i++) {
+			if (!(houses[i].isValidHouse)) {
+				cout << houses[i].houseFileName << ":" << houses[i].error << endl;
+			}
+		}
+		// print all algorithms errors
+		for (int i = 0; i < numOfAlgorithms; i++) {
+			if (!(algorithms[i].isValidAlgorithm)) {
+				cout << algorithms[i].algorithmFileName << ":" << algorithms[i].error << endl;
+			}
+		}
+		// print walking into walls errors
+		for (vector<string>::iterator it = walkingIntoWallsErrors.begin(); it != walkingIntoWallsErrors.end(); ++it) {
+			cout << *it << endl;
+		}
+	}
+
+
 	// free houses
 	for (int k = 0; k < numOfHouses; k++) {
 		for (int i = 0; i < houses[k].rows; i++)
@@ -338,7 +379,7 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 	for (int k = 0; k < numOfAlgorithms; k++) {
 		if (algorithms[k].isValidAlgorithm)
 		{
-			delete  algorithms[k].algo;
+			delete algorithms[k].algo;
 		}
 	}
 
@@ -352,8 +393,6 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 	}
 #endif
 
-
-
 	delete[] houses;
 	delete[] algorithms;
 }
@@ -365,7 +404,7 @@ int main(int argc, const char* argv[])
 	int numOfHouses;
 	int numOfPotentialAlgorithms;
 	House* houses;
-	s_Algorithm* algorithms;
+	S_Algorithm* algorithms;
 	map<string, int> config;
 	// vector of length 3: [0] holds config path, [1] holds house path and [2] holds algorithm path
 	// if not specified, place default
@@ -413,7 +452,7 @@ int main(int argc, const char* argv[])
 	// handle algorithm files
 
 	numOfPotentialAlgorithms = getNumberOfPotentialAlgorithms(flags[2]);
-	if (numOfPotentialAlgorithms == -1)
+	if (numOfPotentialAlgorithms == -1 || numOfPotentialAlgorithms == 0)
 	{
 		// free houses
 		for (int k = 0; k < numOfHouses; k++) {
@@ -426,7 +465,7 @@ int main(int argc, const char* argv[])
 		return -1;
 	}
 
-	algorithms = new s_Algorithm[numOfPotentialAlgorithms];
+	algorithms = new S_Algorithm[numOfPotentialAlgorithms];
 	handle = handleAlgorithmFiles(handleSlash(flags[2].c_str()), numOfPotentialAlgorithms, algorithms);
 
 	if (handle == -1)

@@ -4,7 +4,7 @@
 src = Sensor.cpp Simulator.cpp Auxiliary.cpp
 obj = $(src:.cpp=.o)
 
-CXXFLAGS = -std=c++11 -g -ldl -Wall -O2 -pedantic -pthread
+CXXFLAGS = -std=c++11 -g -ldl -Wall -O2 -pedantic
 
 # may add boost libraries here
 LD_FLAGS = -lm

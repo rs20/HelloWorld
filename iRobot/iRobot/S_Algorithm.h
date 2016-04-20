@@ -5,7 +5,7 @@
 
 #include "AbstractAlgorithm.h"
 
-typedef struct s_Algorithm
+typedef struct S_Algorithm
 {
 	// information based on .so file
 	std::string algorithmFileName;
@@ -14,6 +14,6 @@ typedef struct s_Algorithm
 	// information the program figured out
 	bool isValidAlgorithm; // flag if the house is formatted properly or not
 	std::string error;
-} s_Algorithm;
+} S_Algorithm;
 
 #endif // __S_ALGORITHM_H

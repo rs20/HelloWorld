@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 
 #include "Auxiliary.h"
 #include <stdlib.h>
@@ -194,7 +194,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		return -1;
 	}
 #endif
-
+	sort(fileNames, fileNames + numOfHouses);
 	for (int k = 0; k < numOfHouses; k++)
 	{
 		int numOfDockingStations = 0;
@@ -397,7 +397,7 @@ int getNumberOfHouses(std::string housePath)
 
 
 
-int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, s_Algorithm* algorithms)
+int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, S_Algorithm* algorithms)
 {
 	int i=0;
 	std::string* fileNames = new std::string[numOfPotentialAlgorithms];
@@ -435,6 +435,7 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 		delete[] fileNames;
 		return -1;
 	}
+	sort(fileNames, fileNames + numOfPotentialAlgorithms);
 #endif
 
 #ifdef _WIN32
@@ -602,11 +603,11 @@ void usageMessage(std::string configPath, std::string housePath, std::string alg
 {
 	std::cout << "Usage: simulator";
 	if (!configPath.empty())
-		std::cout << " -config <" << configPath << ">]";
+		std::cout << " -config " << configPath;
 	if (!housePath.empty())
-		std::cout << " -house_path <" << housePath << ">]";
+		std::cout << " -house_path " << housePath;
 	if (!algorithmPath.empty())
-		std::cout << " -algorithm_path <" << algorithmPath << ">]";
+		std::cout << " -algorithm_path " << algorithmPath;
 	std::cout << std::endl;
 }
 

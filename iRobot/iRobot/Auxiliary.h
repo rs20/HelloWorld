@@ -5,6 +5,7 @@
 #include <string.h>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #include "Direction.h"
 #include "S_Algorithm.h"
@@ -57,7 +58,7 @@ std::wstring stringToWstring(const std::string& s);
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
 int getNumberOfPotentialAlgorithms(std::string algorithmPath);
-int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, s_Algorithm* algorithms);
+int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, S_Algorithm* algorithms);
 void printHouseWithRobot(House& house);
 void usageMessage(std::string configPath, std::string housePath, std::string algorithmPath);
 
