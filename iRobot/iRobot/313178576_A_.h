@@ -6,9 +6,10 @@
 
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
+#include "AlgorithmRegistration.h"
 
 #ifndef __MIN_
-#define __MIN
+#define __MIN_
 #define MIN(a,b) (((a)<(b)) ? (a):(b))
 #endif
 
@@ -38,6 +39,9 @@ private:
 	int distanceToDocking = 0;
 	// note that the algorithm does not have an access to the house (only its sensor).
 public:
+	_313178576_A() {};
+	_313178576_A(const _313178576_A&) = delete;
+	_313178576_A& operator=(const _313178576_A&) = delete;
 	// set new sensor -> algorithm knows: starting to work on a new house
 	virtual void setSensor(const AbstractSensor& s) override;
 	virtual void setConfiguration(map<string, int> config) override;

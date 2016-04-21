@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <list>
 #include "313178576_B_.h"
+	
+REGISTER_ALGORITHM(_313178576_B)
 
 /*
 Second Algorithm B:
@@ -270,10 +272,3 @@ Direction _313178576_B::directionFromCells(Cell src, Cell dst)
 	else
 		return Direction::West;
 }
-
-#ifdef __linux__ 	
-extern "C" AbstractAlgorithm* maker()
-{
-	return new _313178576_B();
-}
-#endif

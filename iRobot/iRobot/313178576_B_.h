@@ -7,9 +7,10 @@
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "Cell.h"
+#include "AlgorithmRegistration.h"
 
 #ifndef __MIN_
-#define __MIN
+#define __MIN_
 #define MIN(a,b) (((a)<(b)) ? (a):(b))
 #endif
 
@@ -49,6 +50,9 @@ private:
 	Cell cell = Cell();
 	// note that the algorithm does not have an access to the house (only its sensor).
 public:
+	_313178576_B() {};
+	_313178576_B(const _313178576_B&) = delete;
+	_313178576_B& operator=(const _313178576_B&) = delete;
 	// set new sensor -> algorithm knows: starting to work on a new house
 	virtual void setSensor(const AbstractSensor& s) override;
 	virtual void setConfiguration(map<string, int> config) override;

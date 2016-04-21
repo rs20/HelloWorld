@@ -4,6 +4,8 @@
 #include <list>
 #include "313178576_A_.h"
 
+REGISTER_ALGORITHM(_313178576_A)
+
 /*
 First Algorithm A:
 1. rememebrs the path to the docking station.
@@ -14,6 +16,7 @@ First Algorithm A:
 - else, go to direction (in new order precedences: east->south->west->north) that is different than the last move made
 6. if the move chosen is opposite to the last move made -> remove both from the path (the algorithm is not that dumb)
 */
+
 
 void _313178576_A::setSensor(const AbstractSensor& s)
 {
@@ -184,10 +187,3 @@ Direction _313178576_A::oppositeMove(Direction d)
 		return Direction::Stay;
 	}
 }
-
-#ifdef __linux__ 	
-extern "C" AbstractAlgorithm* maker()
-{
-	return new _313178576_A();
-}
-#endif

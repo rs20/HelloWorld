@@ -51,9 +51,6 @@
     <ClInclude Include="Cell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="S_Algorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="313178576_A_.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -64,6 +61,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Sensor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlgorithmRegistrar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlgorithmRegistration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -87,6 +90,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Sensor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlgorithmRegistrar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlgorithmRegistration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

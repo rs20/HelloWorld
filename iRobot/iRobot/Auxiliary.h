@@ -5,10 +5,22 @@
 #include <string.h>
 #include <map>
 #include <vector>
+#include <list>
+#include <iomanip>
 #include <algorithm>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
 
-#include "Direction.h"
-#include "S_Algorithm.h"
+#ifdef __linux__
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#endif
+
+#include "AlgorithmRegistrar.h"
 #include "House.h"
 
 #ifndef __MIN_
@@ -18,21 +30,18 @@
 
 #define MAX_SCORE 2050
 
-
-// include for sleep
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <unistd.h>
-#include <dirent.h>
-#include <dlfcn.h>
-#endif
-
-
+// OLD Paths
+/*
 #define defaultConfigPath "config/"
 #define defaultHousePath "house/"
 #define defaultAlgorithmPath "Algorithms/"
+*/
+#define defaultConfigPath ""
+#define defaultHousePath ""
+#define defaultAlgorithmPath ""
 #define defaultConfigFile "config.ini"
+
+#define USAGE "Usage: simulator [-config <config path>] [-house_path <house path>] [-algorithm_path <algorithm path>]"
 
 #define ERROR_OPEN_HOUSE_FILE "cannot open file"
 #define ERROR_CONFIG_FILE1 "config.ini exists in "
@@ -53,15 +62,14 @@
 
 
 std::string handleSlash(const char* path);
-int handleConfigFile(std::string configPath, std::map<std::string, int>& house);
+int handleConfigFile(std::string configPath, std::map<std::string, int>& config);
 std::wstring stringToWstring(const std::string& s);
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
 int getNumberOfPotentialAlgorithms(std::string algorithmPath);
-int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, S_Algorithm* algorithms);
+int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, AlgorithmRegistrar& algorithms);
 void printHouseWithRobot(House& house);
-void usageMessage(std::string configPath, std::string housePath, std::string algorithmPath);
-
+void freeHouses(House *houses, int numOfHouses);
 void copyHouse(House& dst, House& src);
 
 std::vector<std::string> split(const std::string &s, char delimiter);

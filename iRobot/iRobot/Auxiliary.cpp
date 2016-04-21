@@ -4,15 +4,6 @@
 #include <stdlib.h>
 #include <string>
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Before we give in the files -> should delete these, and everything that dependens on
-// ... _313178576_X algorithm in this file (Auxiliary.cpp)
-// only used for debugging on windows
-#include "313178576_A_.h"
-#include "313178576_B_.h"
-#include "313178576_C_.h"
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 // make sure the path is ending with "/" (except from the empty path)
 std::string handleSlash(const char* path)
 {
@@ -49,6 +40,7 @@ std::string trim(std::string& str)
 	return str;
 }
 
+// return 0 for ok
 // return -1 for exit + no usage message needed
 // return -2 for exit + usage message needed
 int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
@@ -62,10 +54,15 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	values["BatteryCapacity"] = false;
 	values["BatteryConsumptionRate"] = false;
 	values["BatteryRechargeRate"] = false;
-
+	
 	// check if file exists - if not, return
-	if (!myfile.good())
+	struct stat st;
+	if (stat(fullFileName.c_str(), &st) == -1)
 		return -2;
+	if (!myfile.good()) {
+		std::cout << ERROR_CONFIG_FILE1 << configPath << ERROR_CONFIG_FILE2 << std::endl;
+		return -1;
+	}
 
 	if (myfile.is_open()) {
 		while (getline(myfile, line)) {
@@ -138,7 +135,8 @@ std::wstring stringToWstring(const std::string& s)
 }
 #endif
 
-// return -1 for error / 0 for ok
+// we call this method after checking in getNumberOfHouses that housePath exists (as a directory) and contains > 0 houses
+// return 0 for ok / -1 for error + should print usage / -2 for error + return
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 {
 	std::string* fileNames = new std::string[numOfHouses];
@@ -163,10 +161,17 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	}
 #else
 	DIR *pDIR;
+	struct stat st;
+	if (!(housePath.empty())) {
+		if (stat(housePath.c_str(), &st) == -1) // error (we know the directory exists)
+		{
+			return -1;
+		}
+	}
 	struct dirent *entry;
 	std::string temp = "";
 	int i = 0;
-	if ((pDIR = opendir(housePath.c_str())))
+	if ((pDIR = opendir(housePath.empty() ? "." : housePath.c_str())))
 	{
 		while ((entry = readdir(pDIR)))
 		{
@@ -189,7 +194,6 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	}
 	else
 	{
-		printf("%s\n", "Error in house path");
 		delete[] fileNames;
 		return -1;
 	}
@@ -204,27 +208,28 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		std::ifstream myfile(fullFileName.c_str());
 		std::string line;
 
+		houses[k].ifToFree = false;
 		if (myfile.is_open()) {
 			getline(myfile, line);
 			houses[k].houseDescription = line;
 			getline(myfile, line);
 			if (atoi(line.c_str()) < 0) {
 				houses[k].isValidHouse = false;
-				houses[k].error = "line number 2 in house file shall be a positive number, found: " + atoi(line.c_str());
+				houses[k].error = "line number 2 in house file shall be a positive number, found: " + line;
 				continue;
 			}
 			houses[k].maxSteps = atoi(line.c_str());
 			getline(myfile, line);
 			if (atoi(line.c_str()) <= 0) {
 				houses[k].isValidHouse = false;
-				houses[k].error = "line number 3 in house file shall be a positive number, found: " + atoi(line.c_str());
+				houses[k].error = "line number 3 in house file shall be a positive number, found: " + line;
 				continue;
 			}
 			houses[k].rows = atoi(line.c_str());
 			getline(myfile, line);
 			if (atoi(line.c_str()) <= 0) {
 				houses[k].isValidHouse = false;
-				houses[k].error = "line number 4 in house file shall be a positive number, found: " + atoi(line.c_str());
+				houses[k].error = "line number 4 in house file shall be a positive number, found: " + line;
 				continue;
 			}
 			houses[k].cols = atoi(line.c_str());
@@ -238,6 +243,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 				for (int j = 0; j < houses[k].cols; j++)
 					houses[k].matrix[i][j] = ' ';
 			}
+			houses[k].ifToFree = true;
 
 			// start reading the house matrix
 			getline(myfile, line);
@@ -307,6 +313,16 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 				continue;
 			}
 
+			// once again, find the new docking station
+			for (int i = 0; i < houses[k].rows; i++) {
+				for (int j = 0; j < houses[k].cols; j++) {
+					if (houses[k].matrix[i][j] == 'D') {
+						houses[k].robot = { i, j };
+						houses[k].docking = { i, j };
+					}
+				}
+			}
+
 			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
 			myfile.close();
 		}
@@ -326,16 +342,25 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		return 0;
 	}
 
-	std::cout << "All house files in target folder " << "'" << housePath << "'" << " cannot be opened or are invalid:" << std::endl;
+#ifdef __linux__
+	string fpath = housePath;
+	char* rpath = realpath(housePath.c_str(), NULL);
+	if (rpath != NULL)
+		fpath = string(rpath);
+	std::cout << "All house files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
 	for (int i = 0; i < numOfHouses; i++) {
 		std::cout << houses[i].houseFileName << ":" << houses[i].error << std::endl;
 	}
 	delete[] fileNames;
-	return -1;
+#endif
+	return -2;
 }
 
 
 // returns number of house files in housePath directory
+// return -2 if directory does not exist
+// return -1 if exists but defected / error occured
+// return 0 if exists but no houses inside
 int getNumberOfHouses(std::string housePath)
 {
 	int numOfHouses = 0;
@@ -364,9 +389,22 @@ int getNumberOfHouses(std::string housePath)
 
 #else
 	DIR *pDIR;
+	struct stat st;
+	if (!(housePath.empty())) {
+		if (stat(housePath.c_str(), &st) == -1) // DIR doesn't exist or error
+		{
+			if (errno == ENOENT) { // does not exists
+				return -2;
+			}
+			else { // error opening
+				return -1;
+			}
+		}
+	}
+	// reaches here if directory exists
 	struct dirent *entry;
 	std::string temp = "";
-	if ((pDIR = opendir(housePath.c_str())))
+	if ((pDIR = opendir(housePath.empty() ? "." : housePath.c_str())))
 	{
 		while ((entry = readdir(pDIR)))
 		{
@@ -388,27 +426,35 @@ int getNumberOfHouses(std::string housePath)
 	}
 	else
 	{
-		// TODO: figure out if should print usage and exit?
-		return -1;
+		return -1; // error
 	}
 #endif
 	return numOfHouses;
 }
 
 
-
-int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, S_Algorithm* algorithms)
+// we call this method after checking in getNumberOfPotentialAlgorithms that algorithmPath exists (as a directory) and contains > 0 algorithms
+// return 0 for ok / -1 for error + should print usage / -2 for error + return
+int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, AlgorithmRegistrar& algorithms)
 {
 	int i=0;
 	std::string* fileNames = new std::string[numOfPotentialAlgorithms];
 	bool anyValidAlgorithm = false;
 #ifdef _WIN32
 	delete[] fileNames;
+	return 0;
 #else
 	DIR *pDIR;
+	struct stat st;
+	if (!(algorithmPath.empty())) {
+		if (stat(algorithmPath.c_str(), &st) == -1) // error (we know the directory exists)
+		{
+			return -1;
+		}
+	}
 	struct dirent *entry;
 	std::string temp = "";
-	if ((pDIR = opendir(algorithmPath.c_str())))
+	if ((pDIR = opendir(algorithmPath.empty() ? "." : algorithmPath.c_str())))
 	{
 		while ((entry = readdir(pDIR)))
 		{
@@ -431,77 +477,55 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 	}
 	else
 	{
-		printf("%s\n", "Error in house path");
 		delete[] fileNames;
 		return -1;
 	}
+	// sort the algorithms lexicographically
 	sort(fileNames, fileNames + numOfPotentialAlgorithms);
-#endif
-
-#ifdef _WIN32
-	algorithms[0].algorithmFileName = "_313178576_A";
-	algorithms[1].algorithmFileName = "_313178576_B";
-	algorithms[2].algorithmFileName = "_313178576_C";
-
-	algorithms[0].algo = new _313178576_A;
-	algorithms[1].algo = new _313178576_B;
-	algorithms[2].algo = new _313178576_C;
-
-	algorithms[0].isValidAlgorithm = true;
-	algorithms[1].isValidAlgorithm = true;
-	algorithms[2].isValidAlgorithm = true;
-
-	return 1;
-#else
-	string tempAlgoPath;
-	typedef AbstractAlgorithm* (*algo)();
-
+	
 	for (i = 0; i < numOfPotentialAlgorithms; i++)
 	{
-		algorithms[i].algorithmFileName = fileNames[i];
-		tempAlgoPath = algorithmPath+fileNames[i];
-		algorithms[i].hndl = dlopen(tempAlgoPath.c_str(), RTLD_NOW);
-		if (algorithms[i].hndl == NULL)
-		{
-			algorithms[i].isValidAlgorithm = false;
-			algorithms[i].error = NOT_VALID_SO;
-			continue;
+		string relative = "./" + algorithmPath;
+		int result = algorithms.loadAlgorithm(algorithmPath.empty() ? relative : algorithmPath, fileNames[i]);
+		// add to registrar errors list
+		if (result != AlgorithmRegistrar::ALGORITHM_REGISTERED_SUCCESSFULY) {
+			std::string err = fileNames[i] + ": ";
+			if (result == AlgorithmRegistrar::FILE_CANNOT_BE_LOADED)
+				err += NOT_VALID_SO;
+			else
+				err += NOT_VALID_ALGORITHM;
+			algorithms.addErrorToList(err);
 		}
-
-		algo algorithm = (algo) dlsym(algorithms[i].hndl, "maker");
-		if (algorithm == NULL)
-		{
-			algorithms[i].isValidAlgorithm = false;
-			algorithms[i].error = NOT_VALID_ALGORITHM;
-			continue;
-		}
-
-		algorithms[i].algo = algorithm(); 
-		algorithms[i].isValidAlgorithm = true;
-		anyValidAlgorithm = true;
+		else
+			anyValidAlgorithm = true;
 	}
-
 
 	delete[] fileNames;
 
 	if (anyValidAlgorithm)
 	{
-		return 1;
+		return 0;
 	}
 	else
 	{
-		std::cout << "All algorithm files in target folder " << "'" << algorithmPath << "'" << " cannot be opened or are invalid:" << std::endl;
-		for (int i = 0; i < numOfPotentialAlgorithms; i++) {
-			std::cout << algorithms[i].algorithmFileName << ":" << algorithms[i].error << std::endl;
+		string fpath = algorithmPath;
+		char* rpath = realpath(algorithmPath.c_str(), NULL);
+		if (rpath != NULL)
+			fpath = string(rpath);
+		std::cout << "All algorithm files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
+		std::list<std::string> errors = algorithms.getErrorsList();
+		for (std::list<std::string>::iterator it = errors.begin(); it != errors.end(); ++it) {
+			std::cout << *it << std::endl;
 		}
-		return -1;
+		return -2;
 	}
-
-#endif	
+#endif
 }
 
-
-// returns number of house files in housePath directory
+// returns number of algorithm files in algorithmPath directory
+// return -2 if directory does not exist
+// return -1 if exists but defected / error occured
+// return 0 if exists but no algorithms inside
 int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 {
 	int numOfAlgorithms = 0;
@@ -530,9 +554,22 @@ int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 
 #else
 	DIR *pDIR;
+	struct stat st;
+	if (!(algorithmPath.empty())) {
+		if (stat(algorithmPath.c_str(), &st) == -1) // DIR doesn't exist or error
+		{
+			if (errno == ENOENT) { // does not exists
+				return -2;
+			}
+			else { // error opening
+				return -1;
+			}
+		}
+	}
+	// reaches here if directory exists
 	struct dirent *entry;
 	std::string temp = "";
-	if ((pDIR = opendir(algorithmPath.c_str())))
+	if ((pDIR = opendir(algorithmPath.empty() ? "." : algorithmPath.c_str())))
 	{
 		while ((entry = readdir(pDIR)))
 		{
@@ -554,8 +591,7 @@ int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 	}
 	else
 	{
-		// TODO: figure out if should print usage and exit?
-		return -1;
+		return -1; // error
 	}
 #endif
 	return numOfAlgorithms;
@@ -578,10 +614,10 @@ void printHouseWithRobot(House& house)
 }
 */
 
+// just for debugging
+// print size according to number of rows
 void printHouseWithRobot(House& house)
 {
-	// just for debugging
-	// print size according to number of rows
 	std::string space = " ";
 	if (house.rows > 60 || house.cols > 40)
 		space = "";
@@ -597,20 +633,6 @@ void printHouseWithRobot(House& house)
 		}
 	}
 }
-
-
-void usageMessage(std::string configPath, std::string housePath, std::string algorithmPath)
-{
-	std::cout << "Usage: simulator";
-	if (!configPath.empty())
-		std::cout << " -config " << configPath;
-	if (!housePath.empty())
-		std::cout << " -house_path " << housePath;
-	if (!algorithmPath.empty())
-		std::cout << " -algorithm_path " << algorithmPath;
-	std::cout << std::endl;
-}
-
 
 void copyHouse(House& dst, House& src)
 {
@@ -628,4 +650,17 @@ void copyHouse(House& dst, House& src)
 	dst.docking = src.docking;
 	dst.initialSumOfDirt = src.initialSumOfDirt;
 	dst.sumOfDirt = src.sumOfDirt;
+}
+
+void freeHouses(House* houses, int numOfHouses)
+{
+	// free houses
+	for (int k = 0; k < numOfHouses; k++) {
+		if (houses[k].ifToFree) {
+			for (int i = 0; i < houses[k].rows; i++)
+				delete[] houses[k].matrix[i];
+			delete[] houses[k].matrix;
+		}
+	}
+	delete[] houses;
 }

@@ -21,8 +21,9 @@ typedef struct House
 	Cell docking;
 	int initialSumOfDirt;
 	int sumOfDirt;
-	bool isValidHouse; // flag if the house is formatted properly or not
+	bool isValidHouse; // flag if the house is formatted properly or not (and so should be freed)
 	std::string error;
+	bool ifToFree;
 } House;
 
 #endif //__HOUSE__H

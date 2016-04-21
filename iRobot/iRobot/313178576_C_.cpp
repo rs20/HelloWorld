@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <list>
 #include "313178576_C_.h"
+	
+REGISTER_ALGORITHM(_313178576_C)
 
 /*
 Third Algorithm C:
@@ -237,12 +239,3 @@ Direction _313178576_C::goHome(SensorInformation si)
 		step = Direction::Stay;
 	return step;
 }
-
-
-#ifdef __linux__ 	
-extern "C" AbstractAlgorithm* maker()
-{
-	return new _313178576_C();
-}
-#endif
-
