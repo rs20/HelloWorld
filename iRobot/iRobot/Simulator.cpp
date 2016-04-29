@@ -113,7 +113,10 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 				// increase for the next algorithm
 				l++;
 				if (if_end[l] == true)
+				{
+					nameIterator++;
 					continue;
+				}
 
 				Direction direction = algorithm->step();
 
@@ -151,6 +154,7 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 					break;
 					// do nothing for 'Stay'
 				}
+				
 
 				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] == 'W') { // walked into a wall -> stop the algorithm immediately. its score will be zero
 					into_wall[l] = true;
@@ -162,8 +166,8 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 					string wallError = "Algorithm ";
 					wallError += name;
 					wallError += " when running on House ";
-					index = static_cast<int>(houses[l].houseFileName.find_last_of('.'));
-					name = (houses[l].houseFileName).substr(0, index);
+					index = static_cast<int>(curHouses[l].houseFileName.find_last_of('.'));
+					name = (curHouses[l].houseFileName).substr(0, index);
 					name = name.substr(6, name.size() - 6);
 					wallError += name;
 					wallError += " went on a wall in step ";
@@ -171,6 +175,7 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 					walkingIntoWallsErrors.emplace_back(wallError);
 					if (DEBUG)
 						cout << INTO_WALL << endl;
+					nameIterator++;
 					continue;
 				}
 
@@ -193,6 +198,7 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 					finished++;
 					positionInComp[l] = cur_position;
 					numSteps[l] = simulation_num_steps;
+					nameIterator++;
 					continue;
 				}
 				if (curBattery[l] <= 0) {
@@ -200,8 +206,10 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 						cout << BATTERY_DEAD << endl; // for debug purpose
 					if_end[l] = true;
 					finished++;
+					nameIterator++;
 					continue;
 				}
+				nameIterator++;
 			}
 			if (cur_stage_winners > 0)
 				cur_position = MIN(4, cur_position + cur_stage_winners);
@@ -252,6 +260,7 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 				}
 				break;
 			}
+			
 		}
 		
 		// score the algorithms on the house

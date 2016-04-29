@@ -343,13 +343,13 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	}
 
 #ifdef __linux__
-	string fpath = housePath;
-	char* rpath = realpath(housePath.c_str(), NULL);
+	string fpath = housePath.empty()? "." : housePath;
+	char* rpath = realpath(fpath.c_str(), NULL);
 	if (rpath != NULL)
 		fpath = string(rpath);
 	std::cout << "All house files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
 	for (int i = 0; i < numOfHouses; i++) {
-		std::cout << houses[i].houseFileName << ":" << houses[i].error << std::endl;
+		std::cout << houses[i].houseFileName << ": " << houses[i].error << std::endl;
 	}
 	delete[] fileNames;
 #endif
@@ -508,8 +508,8 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 	}
 	else
 	{
-		string fpath = algorithmPath;
-		char* rpath = realpath(algorithmPath.c_str(), NULL);
+		string fpath = algorithmPath.empty()? "." : algorithmPath;
+		char* rpath = realpath(fpath.c_str(), NULL);
 		if (rpath != NULL)
 			fpath = string(rpath);
 		std::cout << "All algorithm files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
