@@ -46,7 +46,7 @@ void _313178576_B::setConfiguration(map<string, int> config)
 	batteryRechargeRate = it->second;
 }
 
-Direction _313178576_B::step()
+Direction _313178576_B::step(Direction prevStep)
 {
 	// first, if started the move from the docking station -> charge battery
 	if (cell.row == docking.row && cell.col == docking.col)

@@ -50,7 +50,7 @@ void _313178576_C::setConfiguration(map<string, int> config)
 }
 
 
-Direction _313178576_C::step()
+Direction _313178576_C::step(Direction prevStep)
 {
 	//SensorInformation si = sensors.back()->sense();
 	SensorInformation si = sensor->sense();

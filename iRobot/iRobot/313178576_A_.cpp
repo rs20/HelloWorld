@@ -40,7 +40,7 @@ void _313178576_A::setConfiguration(map<string, int> config)
 	it = config.find("BatteryRechargeRate");
 	batteryRechargeRate = it->second;
 }
-Direction _313178576_A::step()
+Direction _313178576_A::step(Direction prevStep)
 {
 	Direction step;
 	// go back to docking station

@@ -157,6 +157,7 @@
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="House.h" />
+    <ClInclude Include="MakeUnique.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="Sensor.h" />
     <ClInclude Include="SensorInformation.h" />

@@ -56,7 +56,7 @@ public:
 	// set new sensor -> algorithm knows: starting to work on a new house
 	virtual void setSensor(const AbstractSensor& s) override;
 	virtual void setConfiguration(map<string, int> config) override;
-	virtual Direction step() override;
+	virtual Direction step(Direction prevStep) override;
 	virtual void aboutToFinish(int stepsTillFinishing) override;
 
 private:

@@ -7,7 +7,7 @@
 #define SHOW_SIMULATION_HOUSES 0
 
 // assumes all algorithms that reach here are fine
-void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorithms, map<string, int> config, AlgorithmRegistrar& registrar)
+void Simulator::startSimulation()
 {
 	// matrix (vector of vectors) of scores: scores[0] - scores of the first house on every algorithm and so on
 	vector<vector<int>> scores(numOfHouses, vector<int>(numOfAlgorithms));
@@ -118,7 +118,8 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 					continue;
 				}
 
-				Direction direction = algorithm->step();
+				// TODO: change parameter sent to 'step' -> it means nothing
+				Direction direction = algorithm->step(Direction::Stay);
 
 				//cleaning dust if there is any.
 				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] > '0' && curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] <= '9') {
@@ -364,19 +365,8 @@ void Simulator::startSimulation(House* houses, int numOfHouses, int numOfAlgorit
 	}
 }
 
-
-int main(int argc, const char* argv[])
+void Simulator::handleArguments(int argc, const char* argv[])
 {
-	Simulator simulator;
-	int numOfHouses;
-	int numOfAlgorithms;
-	House* houses = nullptr;
-	AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
-	std::map<string, int> config = {};
-	// vector of length 3: [0] holds config path, [1] holds house path and [2] holds algorithm path
-	// if not specified, place default
-	vector<string> flags{ defaultConfigPath, defaultHousePath, defaultAlgorithmPath };
-
 	// ignore non-interesting flags
 	for (int i = 1; i < argc - 1; ) {
 		if (!strcmp(argv[i], "-config")) {
@@ -395,7 +385,10 @@ int main(int argc, const char* argv[])
 			i++;
 		}
 	}
+}
 
+int Simulator::handleConfiguration()
+{
 	// handle config file
 	int handle = handleConfigFile(handleSlash((flags[0]).c_str()), config);
 	if (handle < 0) {
@@ -403,11 +396,16 @@ int main(int argc, const char* argv[])
 			cout << USAGE << endl;
 		return -1;
 	}
+	return 0;
+}
 
+int Simulator::handleAlgorithms()
+{
 	// handle algorithm files
 	// [exercise says: - in case the directory is defect -> return
 	//				   - in case the directory is empty -> return
 	//				   - in case the directory is missing -> search recursively in the working directory for algorithms]
+	int handle = 0;
 	numOfAlgorithms = getNumberOfPotentialAlgorithms(flags[2]);
 	if (numOfAlgorithms == -1 || numOfAlgorithms == 0) {
 		cout << USAGE << endl;
@@ -435,11 +433,16 @@ int main(int argc, const char* argv[])
 		}
 		return -1;
 	}
+	return 0;
+}
 
+int Simulator::handleHouses()
+{
 	// handle house files
 	// [exercise says: - in case the directory is defect -> return
 	//				   - in case the directory is empty -> return
 	//				   - in case the directory is missing -> search recursively in the working directory for algorithms]
+	int handle = 0;
 	numOfHouses = getNumberOfHouses(handleSlash((flags[1]).c_str()));
 	if (numOfHouses == -1 || numOfHouses == 0) {
 		cout << USAGE << endl;
@@ -470,14 +473,29 @@ int main(int argc, const char* argv[])
 		return -1;
 	}
 	numOfAlgorithms = registrar.getAlgorithmNames().size();
-	
-	simulator.startSimulation(houses, numOfHouses, numOfAlgorithms, config, registrar);
-	
+	return 0;
+}
+
+void Simulator::end()
+{
 	// free houses
 	freeHouses(houses, numOfHouses);
 	// free dynamic loaded files
 	registrar.clearFactories();
 	registrar.clearHndls();
+}
 
+int main(int argc, const char* argv[])
+{
+	Simulator simulator;
+	simulator.handleArguments(argc, argv);
+	if (simulator.handleConfiguration())
+		return -1;
+	if (simulator.handleAlgorithms())
+		return -1;
+	if (simulator.handleHouses())
+		return -1;
+	simulator.startSimulation();
+	simulator.end();
 	return 0;
 }
