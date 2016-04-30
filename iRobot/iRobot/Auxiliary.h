@@ -13,12 +13,11 @@
 #include <errno.h>
 #include <limits.h>
 
-#ifdef __linux__
+// linux includes
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#endif
 
 #include "AlgorithmRegistrar.h"
 #include "House.h"

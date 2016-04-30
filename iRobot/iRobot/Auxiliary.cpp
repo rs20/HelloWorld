@@ -121,22 +121,6 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	return 0;
 }
 
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~ it is WINODWS method, and contains 'new', so it's ok
-#ifdef _WIN32
-std::wstring stringToWstring(const std::string& s)
-{
-	int len;
-	int slength = (int)s.length() + 1;
-	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-	wchar_t* buf = new wchar_t[len];
-	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-	std::wstring r(buf);
-	delete[] buf;
-	return r;
-}
-#endif
-
 // we call this method after checking in getNumberOfHouses that housePath exists (as a directory) and contains > 0 houses
 // return 0 for ok / -1 for error + should print usage / -2 for error + return
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
@@ -144,27 +128,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	//std::string* fileNames = new std::string[numOfHouses];
 	//unique_ptr<string[]> fileNames = make_unique<string[]>(numOfHouses);
 	vector<string> fileNames;
-#ifdef _WIN32
-	WIN32_FIND_DATA fd;
-	std::wstring stemp = stringToWstring(housePath + "*.house");
-	HANDLE hFile = FindFirstFile(stemp.c_str(), &fd);
-	std::wstring tempFileName = L"";
-	std::string fileName = "";
-
-	//int i = -1;
-	if (INVALID_HANDLE_VALUE != hFile)
-	{
-		do
-		{
-			//i++;
-			tempFileName = std::wstring(fd.cFileName);
-			//fileNames[i] = std::string(tempFileName.begin(), tempFileName.end());
-			string tempStr = std::string(tempFileName.begin(), tempFileName.end());
-			fileNames.push_back(tempStr);
-		} while (FindNextFile(hFile, &fd));
-		FindClose(hFile);
-	}
-#else
+	// linux code
 	DIR *pDIR;
 	struct stat st;
 	if (!(housePath.empty())) {
@@ -204,7 +168,6 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		//delete[] fileNames;
 		return -1;
 	}
-#endif
 	//sort(fileNames, fileNames + numOfHouses);
 	sort(fileNames.begin(), fileNames.end());
 	for (int k = 0; k < numOfHouses; k++)
@@ -353,7 +316,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 		return 0;
 	}
 
-#ifdef __linux__
+	// linux code
 	string fpath = housePath.empty()? "." : housePath;
 	char* rpath = realpath(fpath.c_str(), NULL);
 	if (rpath != NULL)
@@ -364,7 +327,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	}
 	// no need to free with smart pointers
 	//delete[] fileNames;
-#endif
+
 	return -2;
 }
 
@@ -376,30 +339,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 int getNumberOfHouses(std::string housePath)
 {
 	int numOfHouses = 0;
-#ifdef _WIN32
-	WIN32_FIND_DATA fd;
-	std::wstring stemp = stringToWstring(housePath + "*.house");
-	HANDLE hFile = FindFirstFile(stemp.c_str(), &fd);
-	std::wstring tempFileName = L"";
-	std::string fileName = "";
-
-	if (INVALID_HANDLE_VALUE != hFile)
-	{
-		do
-		{
-			tempFileName = std::wstring(fd.cFileName);
-			fileName = std::string(tempFileName.begin(), tempFileName.end());
-			numOfHouses++;
-		} while (FindNextFile(hFile, &fd));
-		FindClose(hFile);
-	}
-	else
-	{
-		// TODO: figure out if should print usage and exit?
-		return -1;
-	}
-
-#else
+	// linux code
 	DIR *pDIR;
 	struct stat st;
 	if (!(housePath.empty())) {
@@ -440,7 +380,6 @@ int getNumberOfHouses(std::string housePath)
 	{
 		return -1; // error
 	}
-#endif
 	return numOfHouses;
 }
 
@@ -454,11 +393,7 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 	//unique_ptr<string[]> fileNames = make_unique<string[]>(numOfPotentialAlgorithms);
 	vector<string> fileNames;
 	bool anyValidAlgorithm = false;
-#ifdef _WIN32
-	// no need to free when working with smart pointers
-	//delete[] fileNames;
-	return 0;
-#else
+	// linux code
 	DIR *pDIR;
 	struct stat st;
 	if (!(algorithmPath.empty())) {
@@ -536,7 +471,6 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 		}
 		return -2;
 	}
-#endif
 }
 
 // returns number of algorithm files in algorithmPath directory
@@ -546,30 +480,7 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 {
 	int numOfAlgorithms = 0;
-#ifdef _WIN32
-	WIN32_FIND_DATA fd;
-	std::wstring stemp = stringToWstring(algorithmPath + "*.so");
-	HANDLE hFile = FindFirstFile(stemp.c_str(), &fd);
-	std::wstring tempFileName = L"";
-	std::string fileName = "";
-
-	if (INVALID_HANDLE_VALUE != hFile)
-	{
-		do
-		{
-			tempFileName = std::wstring(fd.cFileName);
-			fileName = std::string(tempFileName.begin(), tempFileName.end());
-			numOfAlgorithms++;
-		} while (FindNextFile(hFile, &fd));
-		FindClose(hFile);
-	}
-	else
-	{
-		// TODO: figure out if should print usage and exit?
-		return -1;
-	}
-
-#else
+	// linux code
 	DIR *pDIR;
 	struct stat st;
 	if (!(algorithmPath.empty())) {
@@ -610,7 +521,6 @@ int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 	{
 		return -1; // error
 	}
-#endif
 	return numOfAlgorithms;
 }
 
@@ -672,6 +582,7 @@ void copyHouse(House& dst, House& src)
 }
 
 /*
+// no need when working with smart pointers
 void freeHouses(House* houses, int numOfHouses)
 {
 	// free houses

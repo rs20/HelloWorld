@@ -18,13 +18,8 @@ int AlgorithmRegistrar::loadAlgorithm(const std::string& path, const std::string
 	size_t size = instance.size();
 	string tempAlgoPath = path + so_file_name;
 	void* hndl = nullptr;
-#ifdef _WIN32
-	std::wstring stemp = std::wstring(tempAlgoPath.begin(), tempAlgoPath.end());
-	LPCWSTR sw = stemp.c_str();
-	hndl = LoadLibrary(sw);
-#else
+	// dlopen is in linux
 	hndl = dlopen(tempAlgoPath.c_str(), RTLD_NOW);
-#endif
 	if (hndl == NULL) {
 		return FILE_CANNOT_BE_LOADED;
 	}

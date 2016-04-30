@@ -6,13 +6,10 @@
 #include <memory>
 #include <list>
 
-#ifdef _WIN32
-#include <Windows.h>
-#else
+// includes of linux
 #include <unistd.h>
 #include <dirent.h>
 #include <dlfcn.h>
-#endif
 
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
@@ -66,10 +63,8 @@ public:
 		algorithmFactories.clear();
 	}
 	void clearHndls() {
-#ifdef __linux__
 		for (auto hndl : hndls)
 			dlclose(hndl);
-#endif
 	}
 
 	void addErrorToList(std::string err) {
