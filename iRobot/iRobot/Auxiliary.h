@@ -22,6 +22,7 @@
 
 #include "AlgorithmRegistrar.h"
 #include "House.h"
+// House.h includes 'make_unique'
 
 #ifndef __MIN_
 #define __MIN_

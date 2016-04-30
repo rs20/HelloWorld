@@ -121,6 +121,8 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	return 0;
 }
 
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ it is WINODWS method, and contains 'new', so it's ok
 #ifdef _WIN32
 std::wstring stringToWstring(const std::string& s)
 {
@@ -139,7 +141,9 @@ std::wstring stringToWstring(const std::string& s)
 // return 0 for ok / -1 for error + should print usage / -2 for error + return
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 {
-	std::string* fileNames = new std::string[numOfHouses];
+	//std::string* fileNames = new std::string[numOfHouses];
+	//unique_ptr<string[]> fileNames = make_unique<string[]>(numOfHouses);
+	vector<string> fileNames;
 #ifdef _WIN32
 	WIN32_FIND_DATA fd;
 	std::wstring stemp = stringToWstring(housePath + "*.house");
@@ -147,15 +151,16 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	std::wstring tempFileName = L"";
 	std::string fileName = "";
 
-	// we read the houses in ascii order (Simple1.house comes before Simple2.house etc)
-	int i = -1;
+	//int i = -1;
 	if (INVALID_HANDLE_VALUE != hFile)
 	{
 		do
 		{
-			i++;
+			//i++;
 			tempFileName = std::wstring(fd.cFileName);
-			fileNames[i] = std::string(tempFileName.begin(), tempFileName.end());
+			//fileNames[i] = std::string(tempFileName.begin(), tempFileName.end());
+			string tempStr = std::string(tempFileName.begin(), tempFileName.end());
+			fileNames.push_back(tempStr);
 		} while (FindNextFile(hFile, &fd));
 		FindClose(hFile);
 	}
@@ -170,7 +175,7 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	}
 	struct dirent *entry;
 	std::string temp = "";
-	int i = 0;
+	//int i = 0;
 	if ((pDIR = opendir(housePath.empty() ? "." : housePath.c_str())))
 	{
 		while ((entry = readdir(pDIR)))
@@ -183,8 +188,9 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 					temp = temp.substr(strlen(entry->d_name) - 6, strlen(entry->d_name) - 1);
 					if (!strcmp(temp.c_str(), ".house"))
 					{
-						fileNames[i] =  entry->d_name;
-						i++;
+						fileNames.push_back(entry->d_name);
+						//fileNames[i] =  entry->d_name;
+						//i++;
 					}
 				}
 
@@ -194,11 +200,13 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	}
 	else
 	{
-		delete[] fileNames;
+		// no need to delete when working with smart pointers
+		//delete[] fileNames;
 		return -1;
 	}
 #endif
-	sort(fileNames, fileNames + numOfHouses);
+	//sort(fileNames, fileNames + numOfHouses);
+	sort(fileNames.begin(), fileNames.end());
 	for (int k = 0; k < numOfHouses; k++)
 	{
 		int numOfDockingStations = 0;
@@ -237,9 +245,11 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			houses[k].initialSumOfDirt = 0;
 
 			// initialize empty matrix of spaces of size rows X cols
-			houses[k].matrix = new char*[houses[k].rows];
+			//houses[k].matrix = new char*[houses[k].rows];
+			houses[k].matrix = make_unique<unique_ptr<char[]>[]>(houses[k].rows);
 			for (int i = 0; i < houses[k].rows; i++) {
-				houses[k].matrix[i] = new char[houses[k].cols];
+				//houses[k].matrix[i] = new char[houses[k].cols];
+				houses[k].matrix[i] = make_unique<char[]>(houses[k].cols);
 				for (int j = 0; j < houses[k].cols; j++)
 					houses[k].matrix[i][j] = ' ';
 			}
@@ -338,7 +348,8 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 			allMalformed = false;
 	}
 	if (!allMalformed) {
-		delete[] fileNames;
+		// no need to free with smart pointers
+		//delete[] fileNames;
 		return 0;
 	}
 
@@ -351,7 +362,8 @@ int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
 	for (int i = 0; i < numOfHouses; i++) {
 		std::cout << houses[i].houseFileName << ": " << houses[i].error << std::endl;
 	}
-	delete[] fileNames;
+	// no need to free with smart pointers
+	//delete[] fileNames;
 #endif
 	return -2;
 }
@@ -438,10 +450,13 @@ int getNumberOfHouses(std::string housePath)
 int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, AlgorithmRegistrar& algorithms)
 {
 	int i=0;
-	std::string* fileNames = new std::string[numOfPotentialAlgorithms];
+	//std::string* fileNames = new std::string[numOfPotentialAlgorithms];
+	//unique_ptr<string[]> fileNames = make_unique<string[]>(numOfPotentialAlgorithms);
+	vector<string> fileNames;
 	bool anyValidAlgorithm = false;
 #ifdef _WIN32
-	delete[] fileNames;
+	// no need to free when working with smart pointers
+	//delete[] fileNames;
 	return 0;
 #else
 	DIR *pDIR;
@@ -466,8 +481,9 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
 					if (!strcmp(temp.c_str(), ".so"))
 					{
-						fileNames[i] = entry->d_name;
-						i++;
+						//fileNames[i] = entry->d_name;
+						//i++;
+						fileNames.push_back(entry->d_name);
 					}
 				}
 
@@ -477,12 +493,13 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 	}
 	else
 	{
-		delete[] fileNames;
+		// no need to delete when working with smart pointers
+		// delete[] fileNames;
 		return -1;
 	}
 	// sort the algorithms lexicographically
-	sort(fileNames, fileNames + numOfPotentialAlgorithms);
-	
+	//sort(fileNames, fileNames + numOfPotentialAlgorithms);
+	sort(fileNames.begin(), fileNames.end());
 	for (i = 0; i < numOfPotentialAlgorithms; i++)
 	{
 		string relative = "./" + algorithmPath;
@@ -499,8 +516,8 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 		else
 			anyValidAlgorithm = true;
 	}
-
-	delete[] fileNames;
+	// no need of delete when working with smart pointers
+	//delete[] fileNames;
 
 	if (anyValidAlgorithm)
 	{
@@ -640,9 +657,11 @@ void copyHouse(House& dst, House& src)
 	dst.houseDescription = src.houseDescription;
 	dst.rows = src.rows;
 	dst.cols = src.cols;
-	dst.matrix = new char*[src.rows];
+	//dst.matrix = new char*[src.rows];
+	dst.matrix = make_unique<unique_ptr<char[]>[]>(src.rows);
 	for (int i = 0; i < src.rows; i++) {
-		dst.matrix[i] = new char[src.cols];
+		//dst.matrix[i] = new char[src.cols];
+		dst.matrix[i] = make_unique<char[]>(src.cols);
 		for (int j = 0; j < src.cols; j++)
 			dst.matrix[i][j] = src.matrix[i][j];
 	}
@@ -652,6 +671,7 @@ void copyHouse(House& dst, House& src)
 	dst.sumOfDirt = src.sumOfDirt;
 }
 
+/*
 void freeHouses(House* houses, int numOfHouses)
 {
 	// free houses
@@ -664,3 +684,4 @@ void freeHouses(House* houses, int numOfHouses)
 	}
 	delete[] houses;
 }
+*/

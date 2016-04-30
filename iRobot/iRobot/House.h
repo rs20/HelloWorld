@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Cell.h"
-
+#include "MakeUnique.h"
 
 typedef struct House
 {
@@ -15,7 +15,8 @@ typedef struct House
 	int maxSteps;
 	int rows;
 	int cols;
-	char** matrix;
+	//char** matrix;
+	std::unique_ptr<std::unique_ptr<char[]>[]> matrix;
 	// information the program figured out
 	Cell robot;
 	Cell docking;

@@ -6,7 +6,8 @@
 class Simulator {
 	int numOfHouses;
 	int numOfAlgorithms;
-	House* houses = nullptr;
+	unique_ptr<House[]> houses;
+	//House* houses = nullptr;
 	AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 	std::map<string, int> config = {};
 	// vector of length 3: [0] holds config path, [1] holds house path and [2] holds algorithm path

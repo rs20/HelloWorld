@@ -26,8 +26,6 @@ void Simulator::startSimulation()
 	// the house list may contain defected houses -> so we skip them, and count how many of them are good
 	int numOfWorkingHouses = 0;
 
-	House* curHouses;
-
 	// iterate over all houses
 	for (int k = 0; k < numOfHouses; k++)
 	{
@@ -70,7 +68,10 @@ void Simulator::startSimulation()
 		}
 
 		// make a copy of the current house for every algorithm and assign a sensor to it
-		curHouses = new House[numOfAlgorithms];
+		//curHouses = new House[numOfAlgorithms];
+		//House* curHouses;
+		unique_ptr<House[]> curHouses = make_unique<House[]>(numOfAlgorithms);
+		
 		vector<Sensor> sensors;
 		for (int l = 0; l < numOfAlgorithms; l++) {
 			copyHouse(curHouses[l], houses[k]);
@@ -281,12 +282,15 @@ void Simulator::startSimulation()
 			getchar();
 
 		// delete cur houses and sensors
+		/*
+		// there's no need to free when working with smart pointers
 		for (int l = 0; l < numOfAlgorithms; l++) {
 			for (int i = 0; i < curHouses[l].rows; i++)
 				delete[] curHouses[l].matrix[i];
 			delete[] curHouses[l].matrix;
 		}
 		delete[] curHouses;
+		*/
 	}
 
 	// print scores
@@ -463,13 +467,16 @@ int Simulator::handleHouses()
 			flags[1] = "";
 		}
 	}
-	houses = new House[numOfHouses];
-	handle = handleHouseFiles(handleSlash((flags[1]).c_str()), numOfHouses, houses);
+	//houses = new House[numOfHouses];
+	houses = make_unique<House[]>(numOfHouses);
+	// pass raw pointer to initiailize houses (houses is a pointer to an array of houses)
+	handle = handleHouseFiles(handleSlash((flags[1]).c_str()), numOfHouses, houses.get());
 	if (handle < 0) {
 		if (handle == -1) {
 			cout << USAGE << endl;
 		}
-		freeHouses(houses, numOfHouses);
+		houses.reset();
+		//freeHouses(houses, numOfHouses);
 		return -1;
 	}
 	numOfAlgorithms = registrar.getAlgorithmNames().size();
@@ -479,7 +486,8 @@ int Simulator::handleHouses()
 void Simulator::end()
 {
 	// free houses
-	freeHouses(houses, numOfHouses);
+	//freeHouses(houses, numOfHouses);
+	houses.reset();
 	// free dynamic loaded files
 	registrar.clearFactories();
 	registrar.clearHndls();
