@@ -1,7 +1,4 @@
 //#include "stdafx.h"
-
-#include <stdlib.h>
-#include <list>
 #include "313178576_C_.h"
 	
 REGISTER_ALGORITHM(_313178576_C)

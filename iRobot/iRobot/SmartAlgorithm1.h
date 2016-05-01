@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <list>
 
-#include "Direction.h"
 #include "MyHouse.h"
 #include "AbstractAlgorithm.h"
 #include "MakeUnique.h"
@@ -51,6 +50,8 @@ public:
 	virtual Direction step(Direction prevStep) override;
 	virtual void aboutToFinish(int stepsTillFinishing) override;
 private:
+	Direction oppositeMove(Direction d);
+	bool goHome();
 };
 
 #endif // __SMART_ALGORITHM1_H
