@@ -7,6 +7,7 @@
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "Cell.h"
+#include "MakeUnique.h"
 #include "AlgorithmRegistration.h"
 
 #ifndef __MIN_

@@ -6,6 +6,7 @@
 
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
+#include "MakeUnique.h"
 #include "AlgorithmRegistration.h"
 
 #ifndef __MIN_

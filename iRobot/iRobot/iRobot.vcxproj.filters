@@ -72,6 +72,12 @@
     <ClInclude Include="MakeUnique.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SmartAlgorithm1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyHouse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -99,6 +105,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AlgorithmRegistration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SmartAlgorithm1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MyHouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
