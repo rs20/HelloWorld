@@ -72,10 +72,13 @@
     <ClInclude Include="MakeUnique.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SmartAlgorithm1.h">
+    <ClInclude Include="MyHouse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MyHouse.h">
+    <ClInclude Include="score_formula.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Smart1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -107,10 +110,13 @@
     <ClCompile Include="AlgorithmRegistration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SmartAlgorithm1.cpp">
+    <ClCompile Include="MyHouse.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MyHouse.cpp">
+    <ClCompile Include="score_formula.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Smart1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

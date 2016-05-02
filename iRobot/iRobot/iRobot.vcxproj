@@ -160,10 +160,11 @@
     <ClInclude Include="MakeUnique.h" />
     <ClInclude Include="MyHouse.h" />
     <ClInclude Include="Score.h" />
+    <ClInclude Include="score_formula.h" />
     <ClInclude Include="Sensor.h" />
     <ClInclude Include="SensorInformation.h" />
     <ClInclude Include="Simulator.h" />
-    <ClInclude Include="SmartAlgorithm1.h" />
+    <ClInclude Include="Smart1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -175,9 +176,10 @@
     <ClCompile Include="AlgorithmRegistration.cpp" />
     <ClCompile Include="Auxiliary.cpp" />
     <ClCompile Include="MyHouse.cpp" />
+    <ClCompile Include="score_formula.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="Sensor.cpp" />
-    <ClCompile Include="SmartAlgorithm1.cpp" />
+    <ClCompile Include="Smart1.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -30,18 +30,14 @@
 
 #define MAX_SCORE 2050
 
-// OLD Paths
-/*
-#define defaultConfigPath "config/"
-#define defaultHousePath "house/"
-#define defaultAlgorithmPath "Algorithms/"
-*/
 #define defaultConfigPath ""
 #define defaultHousePath ""
 #define defaultAlgorithmPath ""
+#define defaultScorePath ""
 #define defaultConfigFile "config.ini"
 
-#define USAGE "Usage: simulator [-config <config path>] [-house_path <house path>] [-algorithm_path <algorithm path>]"
+#define USAGE "Usage: simulator [-config <config path>] [-house_path <house path>] [-algorithm_path <algorithm path>] \
+[-score_formula <score .so path>] [-threads <num threads>]"
 
 #define ERROR_OPEN_HOUSE_FILE "cannot open file"
 #define ERROR_CONFIG_FILE1 "config.ini exists in "
@@ -64,6 +60,7 @@
 std::string handleSlash(const char* path);
 int handleConfigFile(std::string configPath, std::map<std::string, int>& config);
 std::wstring stringToWstring(const std::string& s);
+int handleScoreFile(std::string scorePath);
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
 int getNumberOfPotentialAlgorithms(std::string algorithmPath);

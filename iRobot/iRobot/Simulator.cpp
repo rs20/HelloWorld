@@ -11,6 +11,7 @@ void Simulator::startSimulation()
 {
 	// matrix (vector of vectors) of scores: scores[0] - scores of the first house on every algorithm and so on
 	vector<vector<int>> scores(numOfHouses, vector<int>(numOfAlgorithms));
+	vector<pair<int,pair<string,vector<int>>>> avg_scores; // avg score of an algorithm + its name + its scores
 	vector<string> walkingIntoWallsErrors;
 	auto algorithms = registrar.getAlgorithms();
 	auto& algorithmNames = registrar.getAlgorithmNames();
@@ -316,32 +317,42 @@ void Simulator::startSimulation()
 		// start printing scores for algorithms
 		list<string>::const_iterator nameIterator = algorithmNames.begin();
 		for (int i = 0; i < numOfAlgorithms; i++) {
+			vector<int> this_alg_scores;
+			double avg = 0;
+			for (int j = 0; j < numOfHouses; j++) {
+				if (houses[j].isValidHouse == false)
+					continue;
+				avg += scores[j][i];
+				this_alg_scores.push_back(scores[j][i]);
+			}
+			avg /= numOfWorkingHouses;
+			avg_scores.push_back({ avg, {*nameIterator, this_alg_scores} });
+			nameIterator++;
+		}
+		// sort by score (ascending order)
+		sort(avg_scores.begin(), avg_scores.end());
+		// iterate the vector in descending order
+		for (vector<pair<int, pair<string,vector<int>>>>::iterator it = avg_scores.end() - 1; it != avg_scores.begin() - 1; it--) {
 			cout << string(dashes, '-') << endl;
 			// print algorithm file name.. scores... avg
-			int index = static_cast<int>((*nameIterator).find(".so"));
-			string name = (*nameIterator).substr(0, index);
+			string name = ((*it).second).first;
+			double avg = (*it).first;
+			int index = static_cast<int>(name.find(".so"));
+			name = name.substr(0, index);
 			string trimmed = name.substr(0, 12);
 			cout << "|";
 			cout.width(13);
 			cout << left << trimmed;
 			cout << "|";
-			double avg = 0;
-
-			for (int j = 0; j < numOfHouses; j++) {
-				if (houses[j].isValidHouse == false)
-					continue;
-
+			vector<int> this_alg_scores = ((*it).second).second;
+			for (vector<int>::iterator score_it = this_alg_scores.begin(); score_it != this_alg_scores.end(); score_it++) {
 				cout.width(10);
-				cout << right << scores[j][i];
+				cout << right << *score_it;
 				cout << "|";
-				avg += scores[j][i];
 			}
-
-			avg /= numOfWorkingHouses;
 			cout.width(10);
 			cout << right << std::fixed << std::setprecision(2) << avg;
 			cout << "|" << endl;
-			nameIterator++;
 		}
 		cout << string(dashes, '-') << endl;
 	}
@@ -377,12 +388,16 @@ void Simulator::handleArguments(int argc, const char* argv[])
 			flags[0] = argv[i + 1];
 			i += 2;
 		}
-		else if (!strcmp(argv[i], "-house_path")) {
+		else if (!strcmp(argv[i], "-score_formula")) {
 			flags[1] = argv[i + 1];
 			i += 2;
 		}
-		else if (!strcmp(argv[i], "-algorithm_path")) {
+		else if (!strcmp(argv[i], "-house_path")) {
 			flags[2] = argv[i + 1];
+			i += 2;
+		}
+		else if (!strcmp(argv[i], "-algorithm_path")) {
+			flags[3] = argv[i + 1];
 			i += 2;
 		}
 		else {
@@ -403,6 +418,24 @@ int Simulator::handleConfiguration()
 	return 0;
 }
 
+// TODO: dynamic load the score .so
+// TODO: handle errors
+int Simulator::handleScore()
+{
+	int handle = handleScoreFile(handleSlash((flags[1]).c_str()));
+	if (handle < 0) {
+		return -1; // NOT DONE! should handle errors
+	}
+	return 0;
+}
+
+// TODO
+int Simulator::handleThreads()
+{
+	numOfThreads = 1;
+	return 0;
+}
+
 int Simulator::handleAlgorithms()
 {
 	// handle algorithm files
@@ -410,13 +443,13 @@ int Simulator::handleAlgorithms()
 	//				   - in case the directory is empty -> return
 	//				   - in case the directory is missing -> search recursively in the working directory for algorithms]
 	int handle = 0;
-	numOfAlgorithms = getNumberOfPotentialAlgorithms(flags[2]);
+	numOfAlgorithms = getNumberOfPotentialAlgorithms(flags[3]);
 	if (numOfAlgorithms == -1 || numOfAlgorithms == 0) {
 		cout << USAGE << endl;
 		return -1;
 	}
 	if (numOfAlgorithms == -2) { // search recursive in the working directory
-		if (flags[2].empty()) { // already searched in there.. -> return
+		if (flags[3].empty()) { // already searched in there.. -> return
 			cout << USAGE << endl;
 			return -1;
 		}
@@ -426,11 +459,11 @@ int Simulator::handleAlgorithms()
 			return -1;
 		}
 		else {
-			// update flags[2] to the working directory -> it contains algorithms that should be loaded
-			flags[2] = "";
+			// update flags[3] to the working directory -> it contains algorithms that should be loaded
+			flags[3] = "";
 		}
 	}
-	handle = handleAlgorithmFiles(handleSlash(flags[2].c_str()), numOfAlgorithms, registrar);
+	handle = handleAlgorithmFiles(handleSlash(flags[3].c_str()), numOfAlgorithms, registrar);
 	if (handle < 0) {
 		if (handle == -1) {
 			cout << USAGE << endl;
@@ -447,13 +480,13 @@ int Simulator::handleHouses()
 	//				   - in case the directory is empty -> return
 	//				   - in case the directory is missing -> search recursively in the working directory for algorithms]
 	int handle = 0;
-	numOfHouses = getNumberOfHouses(handleSlash((flags[1]).c_str()));
+	numOfHouses = getNumberOfHouses(handleSlash((flags[2]).c_str()));
 	if (numOfHouses == -1 || numOfHouses == 0) {
 		cout << USAGE << endl;
 		return -1;
 	}
 	if (numOfHouses == -2) { // search recursive in the working directory
-		if (flags[1].empty()) { // already searched in there.. -> return
+		if (flags[2].empty()) { // already searched in there.. -> return
 			cout << USAGE << endl;
 			return -1;
 		}
@@ -464,13 +497,13 @@ int Simulator::handleHouses()
 		}
 		else {
 			// update flags[1] to the working directory -> it contains the houses that should be read
-			flags[1] = "";
+			flags[2] = "";
 		}
 	}
 	//houses = new House[numOfHouses];
 	houses = make_unique<House[]>(numOfHouses);
 	// pass raw pointer to initiailize houses (houses is a pointer to an array of houses)
-	handle = handleHouseFiles(handleSlash((flags[1]).c_str()), numOfHouses, houses.get());
+	handle = handleHouseFiles(handleSlash((flags[2]).c_str()), numOfHouses, houses.get());
 	if (handle < 0) {
 		if (handle == -1) {
 			cout << USAGE << endl;
@@ -498,6 +531,10 @@ int main(int argc, const char* argv[])
 	Simulator simulator;
 	simulator.handleArguments(argc, argv);
 	if (simulator.handleConfiguration())
+		return -1;
+	if (simulator.handleScore())
+		return -1;
+	if (simulator.handleThreads())
 		return -1;
 	if (simulator.handleAlgorithms())
 		return -1;

@@ -121,6 +121,11 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	return 0;
 }
 
+int handleScoreFile(std::string scorePath)
+{
+	return 0;
+}
+
 // we call this method after checking in getNumberOfHouses that housePath exists (as a directory) and contains > 0 houses
 // return 0 for ok / -1 for error + should print usage / -2 for error + return
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
@@ -413,12 +418,16 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 6 
 				{
 					temp = entry->d_name;
+					string temp_name = temp.substr(0, strlen(entry->d_name) - 3);
 					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
 					if (!strcmp(temp.c_str(), ".so"))
 					{
 						//fileNames[i] = entry->d_name;
 						//i++;
-						fileNames.push_back(entry->d_name);
+						// do not load 'score_formula.so'
+						if (strcmp(temp_name.c_str(), "score_formula")) {
+							fileNames.push_back(entry->d_name);
+						}
 					}
 				}
 
@@ -506,10 +515,14 @@ int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 3 
 				{
 					temp = entry->d_name;
+					string temp_name = temp.substr(0, strlen(entry->d_name) - 3);
 					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
 					if (!strcmp(temp.c_str(), ".so"))
 					{
-						numOfAlgorithms++;
+						// do not load 'score_formula.so'
+						if (strcmp(temp_name.c_str(), "score_formula")) {
+							numOfAlgorithms++;
+						}
 					}
 				}
 
