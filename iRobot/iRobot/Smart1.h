@@ -35,6 +35,8 @@ private:
 	int curBattery;
 	int batteryConsumptionRate;
 	int batteryRechargeRate;
+	// replace MyHouse house with it:
+	//map<Cell,char> house;
 	MyHouse house;
 	bool ending = false; // true <-> on the way home (docking station)
 	list<Direction> wayHome;

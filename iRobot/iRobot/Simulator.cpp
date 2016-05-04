@@ -268,6 +268,8 @@ void Simulator::startSimulation()
 		
 		// score the algorithms on the house
 		// if none won -> winner num steps = simulation num steps
+		// TODO: call the right score method (Score.h or calc_score from the loaded score_formula.so)
+		// (call calc_score if score_loaded==true (field in Simulator.h) and call the score method in Score.h when it's false
 		if (winner_num_steps == -1)
 			winner_num_steps = simulation_num_steps;
 		for (int l = 0; l < numOfAlgorithms; l++) {
@@ -391,6 +393,7 @@ void Simulator::handleArguments(int argc, const char* argv[])
 		else if (!strcmp(argv[i], "-score_formula")) {
 			flags[1] = argv[i + 1];
 			i += 2;
+			score_loaded = true;
 		}
 		else if (!strcmp(argv[i], "-house_path")) {
 			flags[2] = argv[i + 1];
@@ -422,7 +425,9 @@ int Simulator::handleConfiguration()
 // TODO: handle errors
 int Simulator::handleScore()
 {
-	int handle = handleScoreFile(handleSlash((flags[1]).c_str()));
+	if (!score_loaded)
+		return 0;
+	int handle = handleScoreFile(handleSlash((flags[1]).c_str()), score_hndl);
 	if (handle < 0) {
 		return -1; // NOT DONE! should handle errors
 	}

@@ -121,8 +121,54 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	return 0;
 }
 
-int handleScoreFile(std::string scorePath)
+// return 0 for ok / -1 for .... / -2 for
+int handleScoreFile(std::string scorePath, void* hndl)
 {
+	bool found = false;
+	DIR *pDIR;
+	struct stat st;
+	if (!(scorePath.empty())) {
+		if (stat(scorePath.c_str(), &st) == -1) // error (we know the directory exists)
+		{
+			return -1;
+		}
+	}
+	struct dirent *entry;
+	std::string temp = "";
+	if ((pDIR = opendir(scorePath.empty() ? "." : scorePath.c_str())))
+	{
+		while ((entry = readdir(pDIR)))
+		{
+			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+			{
+				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 3
+				{
+					temp = entry->d_name;
+					string temp_name = temp.substr(0, strlen(entry->d_name) - 3);
+					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
+					if (!strcmp(temp.c_str(), ".so"))
+					{
+						if (!strcmp(temp_name.c_str(), "score_formula")) {
+							found = true;
+						}
+					}
+				}
+
+			}
+		}
+		closedir(pDIR);
+	}
+	else
+	{
+		// return
+	}
+	if (!found)
+	{
+		// return
+	}
+
+	// TODO: found - dlopen and assign hndl to 'score_hndl'
+	
 	return 0;
 }
 
@@ -415,7 +461,7 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 		{
 			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
 			{
-				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 6 
+				if (strlen(entry->d_name) > 3) // name of file is "X.so" so it should be > 3
 				{
 					temp = entry->d_name;
 					string temp_name = temp.substr(0, strlen(entry->d_name) - 3);

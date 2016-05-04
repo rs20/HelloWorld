@@ -60,7 +60,7 @@
 std::string handleSlash(const char* path);
 int handleConfigFile(std::string configPath, std::map<std::string, int>& config);
 std::wstring stringToWstring(const std::string& s);
-int handleScoreFile(std::string scorePath);
+int handleScoreFile(std::string scorePath, void* hndl);
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
 int getNumberOfPotentialAlgorithms(std::string algorithmPath);

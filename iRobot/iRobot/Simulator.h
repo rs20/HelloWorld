@@ -7,6 +7,8 @@ class Simulator {
 	int numOfHouses;
 	int numOfAlgorithms;
 	int numOfThreads;
+	bool score_loaded;
+	void* score_hndl;
 	unique_ptr<House[]> houses;
 	AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 	std::map<string, int> config = {};
