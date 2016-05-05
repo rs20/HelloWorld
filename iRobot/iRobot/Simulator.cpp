@@ -55,6 +55,7 @@ void Simulator::startSimulation()
 		vector<int> curBattery(numOfAlgorithms);
 		vector<int> numSteps(numOfAlgorithms);
 		vector<int> positionInComp(numOfAlgorithms, 10); // default position is 10
+		vector<Direction> lastMoves(numOfAlgorithms, Direction::Stay);
 		bool is_winner = false;
 		int winner_num_steps = -1;
 		int cur_stage_winners = 0;
@@ -120,8 +121,9 @@ void Simulator::startSimulation()
 					continue;
 				}
 
-				// TODO: change parameter sent to 'step' -> it means nothing
-				Direction direction = algorithm->step(Direction::Stay);
+				// pass last move of the algorithm and update the new one
+				Direction direction = algorithm->step(lastMoves[l]);
+				lastMoves[l] = direction;
 
 				//cleaning dust if there is any.
 				if (curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] > '0' && curHouses[l].matrix[curHouses[l].robot.row][curHouses[l].robot.col] <= '9') {

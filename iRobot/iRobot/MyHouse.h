@@ -26,15 +26,14 @@ class MyHouse {
 	Cell robot = { 0, 0 };
 	std::map<Cell, char> house = { { docking, 'D' } };
 public:
-	MyHouse() {}
-	MyHouse(const MyHouse&) = delete;
-	MyHouse& operator=(const MyHouse&) = delete;
 	void resetHouse(); // called when the algorithm starts working on a new house
 	std::list<Direction> toDocking();
 	Cell getDocking() { return docking; }
 	Cell getRobot() { return robot; }
 	void updateRobot(Direction direction);
+	bool hasCell(Cell cell);
+	char getCell(Cell cell) { return house.at(cell); }
+	void updateRobotArea(SensorInformation si);
 private:
 	void updateCell(Cell cell, char type);
-	void updateArea(Cell cell, SensorInformation si);
 };

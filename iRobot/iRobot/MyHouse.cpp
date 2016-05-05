@@ -10,7 +10,7 @@ std::list<Direction> MyHouse::toDocking()
 	q.push({ start, robot });
 	std::set<Cell> visited;
 	visited.insert(robot);
-	while (true) {
+	while (q.size() > 0) {
 		std::list<Direction> list = q.front().first;
 		Cell cell = q.front().second;
 		q.pop();
@@ -19,7 +19,7 @@ std::list<Direction> MyHouse::toDocking()
 		Cell south = { cell.row + 1, cell.col };
 		Cell north = { cell.row - 1, cell.col };
 		// if cell is known to house map, it wasn't visited and is not a wall, create a new list with it
-		if ((house.count(east) != 0) && (visited.count(east) == 0) && house[east] != 'W') {
+		if (hasCell(east) && ((visited.find(east) == visited.end()) || (*(visited.find(east)) != east)) && (house.at(east) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::East);
 			if (east == docking)
@@ -27,7 +27,7 @@ std::list<Direction> MyHouse::toDocking()
 			q.push({ newList, east });
 			visited.insert(east);
 		}
-		if ((house.count(west) != 0) && (visited.count(west) == 0) && house[west] != 'W') {
+		if (hasCell(west) && ((visited.find(west) == visited.end()) || (*(visited.find(west)) != west)) && (house.at(west) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::West);
 			if (west == docking)
@@ -35,7 +35,7 @@ std::list<Direction> MyHouse::toDocking()
 			q.push({ newList, west });
 			visited.insert(west);
 		}
-		if ((house.count(south) != 0) && (visited.count(south) == 0) && house[south] != 'W') {
+		if (hasCell(south) && ((visited.find(south) == visited.end()) || (*(visited.find(south)) != south)) && (house.at(south) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::South);
 			if (south == docking)
@@ -43,7 +43,7 @@ std::list<Direction> MyHouse::toDocking()
 			q.push({ newList, south });
 			visited.insert(south);
 		}
-		if ((house.count(north) != 0) && (visited.count(north) == 0) && house[north] != 'W') {
+		if (hasCell(north) && ((visited.find(north) == visited.end()) || (*(visited.find(north)) != north)) && (house.at(north) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::North);
 			if (north == docking)
@@ -53,6 +53,7 @@ std::list<Direction> MyHouse::toDocking()
 		}
 		//length++;
 	}
+	return start; // should never reach here
 }
 
 void MyHouse::resetHouse()
@@ -77,45 +78,54 @@ void MyHouse::updateRobot(Direction direction)
 		robot.row--;
 }
 
+bool MyHouse::hasCell(Cell cell)
+{
+	auto search = house.find(cell);
+	if (search == house.end())
+		return false;
+	if (search->first == cell)
+		return true;
+	return false;
+}
+
 void MyHouse::updateCell(Cell cell, char type)
 {
 	house[cell] = type;
 }
 
 // the algorithm should call this function right after calling 'sense' to the sensor
-// assumes the robot's position is cell
-void MyHouse::updateArea(Cell cell, SensorInformation si)
+void MyHouse::updateRobotArea(SensorInformation si)
 {
 	// update house according to SensorInformation
 	// update current cell dirt level
 	if (si.dirtLevel > 0) {
 		// cleans 1 amount of dirt during the current step
 		if (si.dirtLevel == 1)
-			updateCell(cell, ' ');
+			updateCell(robot, ' ');
 		else
-			updateCell(cell, (si.dirtLevel - 1) + '0');
+			updateCell(robot, (si.dirtLevel - 1) + '0');
 	}
 	// update around if unknown
-	Cell east = { cell.row, cell.col + 1 }, west = { cell.row, cell.col - 1 }, south = { cell.row + 1, cell.col }, north = { cell.row - 1, cell.col };
-	if (house.count(east) == 0) {
+	Cell east = { robot.row, robot.col + 1 }, west = { robot.row, robot.col - 1 }, south = { robot.row + 1, robot.col }, north = { robot.row - 1, robot.col };
+	if (!hasCell(east)) {
 		if (si.isWall[0])
 			updateCell(east, 'W');
 		else
 			updateCell(east, 'X');
 	}
-	if (house.count(west) == 0) {
+	if (!hasCell(west)) {
 		if (si.isWall[1])
 			updateCell(west, 'W');
 		else
 			updateCell(west, 'X');
 	}
-	if (house.count(south) == 0) {
+	if (!hasCell(south)) {
 		if (si.isWall[2])
 			updateCell(south, 'W');
 		else
 			updateCell(south, 'X');
 	}
-	if (house.count(north) == 0) {
+	if (!hasCell(north)) {
 		if (si.isWall[3])
 			updateCell(north, 'W');
 		else

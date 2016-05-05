@@ -27,6 +27,7 @@ Smart Algorithm 1:
 class Smart1 : public AbstractAlgorithm
 {
 private:
+	bool start = true;
 	const AbstractSensor* sensor;
 	int moreSteps = -1; // steps until simulation's finishes / -1 if unknown
 	int batteryCapacity;

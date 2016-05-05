@@ -28,7 +28,6 @@ void Smart1::setConfiguration(map<string, int> config)
 	batteryRechargeRate = it->second;
 }
 
-// TODO: add logic for choosing the next step cleverly
 Direction Smart1::step(Direction prevStep)
 {
 	// update robot's position according to the last move that the simulator actually made with the robot
@@ -38,9 +37,15 @@ Direction Smart1::step(Direction prevStep)
 		lastMove = prevStep;
 
 	// first, if started the move from the docking station -> charge battery
-	if (house.getRobot().row == house.getDocking().row && house.getRobot().col == house.getDocking().col)
+	if (house.getRobot() == house.getDocking())
 		curBattery += batteryRechargeRate;
 	curBattery = MIN(curBattery, batteryCapacity);
+
+	// update area on start, when not on start -> update only when not returning / recharging
+	if (start) {
+		SensorInformation si = sensor->sense();
+		house.updateRobotArea(si);
+	}
 
 	Direction step;
 	if (returning) {
@@ -71,40 +76,56 @@ Direction Smart1::step(Direction prevStep)
 		recharging = false;
 		// (recharging == false, returning == false)
 		SensorInformation si = sensor->sense();
+		house.updateRobotArea(si);
+		// clean all dirt, then move to a new cell
 		if (si.dirtLevel > 1)
 			step = Direction::Stay;
 		// choose first step available that is different than the last move made (if possible)
 		else {
-			int directions = 0;
-			// count available moves
-			for (int i = 0; i < 4; i++)
-				directions += (si.isWall[i]) ? 0 : 1;
-
-			// pick first available direction to move to different than the last step made
-			// choose last step only if it is the only available move
-			if (directions > 1) {
-				if (si.isWall[0] == false && oppositeMove(lastMove) != Direction::East)
-					step = Direction::East;
-				else if (si.isWall[1] == false && oppositeMove(lastMove) != Direction::West)
-					step = Direction::West;
-				else if (si.isWall[2] == false && oppositeMove(lastMove) != Direction::South)
-					step = Direction::South;
-				else if (si.isWall[3] == false && oppositeMove(lastMove) != Direction::North)
-					step = Direction::North;
-				else
-					step = Direction::Stay;
-			}
+			Cell cell = house.getRobot();
+			Cell east = { cell.row, cell.col + 1 };
+			Cell west = { cell.row, cell.col - 1 };
+			Cell south = { cell.row + 1, cell.col };
+			Cell north = { cell.row - 1, cell.col };
+			if (house.hasCell(east) && house.getCell(east) == 'X')
+				step = Direction::East;
+			else if (house.hasCell(west) && house.getCell(west) == 'X')
+				step = Direction::West;
+			else if (house.hasCell(south) && house.getCell(south) == 'X')
+				step = Direction::South;
+			else if (house.hasCell(north) && house.getCell(north) == 'X')
+				step = Direction::North;
 			else {
-				if (si.isWall[0] == false)
-					step = Direction::East;
-				else if (si.isWall[1] == false)
-					step = Direction::West;
-				else if (si.isWall[2] == false)
-					step = Direction::South;
-				else if (si.isWall[3] == false)
-					step = Direction::North;
-				else
-					step = Direction::Stay;
+				int directions = 0;
+				// count available moves
+				for (int i = 0; i < 4; i++)
+					directions += (si.isWall[i]) ? 0 : 1;
+				// pick first available direction to move to different than the last step made
+				// choose last step only if it is the only available move
+				if (directions > 1) {
+					if (si.isWall[0] == false && oppositeMove(lastMove) != Direction::East)
+						step = Direction::East;
+					else if (si.isWall[1] == false && oppositeMove(lastMove) != Direction::West)
+						step = Direction::West;
+					else if (si.isWall[2] == false && oppositeMove(lastMove) != Direction::South)
+						step = Direction::South;
+					else if (si.isWall[3] == false && oppositeMove(lastMove) != Direction::North)
+						step = Direction::North;
+					else
+						step = Direction::Stay;
+				}
+				else {
+					if (si.isWall[0] == false)
+						step = Direction::East;
+					else if (si.isWall[1] == false)
+						step = Direction::West;
+					else if (si.isWall[2] == false)
+						step = Direction::South;
+					else if (si.isWall[3] == false)
+						step = Direction::North;
+					else
+						step = Direction::Stay;
+				}
 			}
 		}
 	}
