@@ -9,7 +9,9 @@ void Smart1::setSensor(const AbstractSensor& s)
 	sensor = &s;
 	moreSteps = -1;
 	curBattery = batteryCapacity;
-	ending = false;
+	returning = false;
+	recharging = false;
+	lastMove = Direction::Stay;
 	house.resetHouse();
 	wayHome.clear();
 }
@@ -32,6 +34,8 @@ Direction Smart1::step(Direction prevStep)
 	// update robot's position according to the last move that the simulator actually made with the robot
 	// as the exercise specifies, the simulator may not work always according to the algorithm's suggested move
 	house.updateRobot(prevStep);
+	if (prevStep != Direction::Stay)
+		lastMove = prevStep;
 
 	// first, if started the move from the docking station -> charge battery
 	if (house.getRobot().row == house.getDocking().row && house.getRobot().col == house.getDocking().col)
@@ -39,18 +43,33 @@ Direction Smart1::step(Direction prevStep)
 	curBattery = MIN(curBattery, batteryCapacity);
 
 	Direction step;
-	if (ending) {
+	if (returning) {
 		// on the way home -> get the first move in the 'wayHome' list
-		if (wayHome.empty() == 0)
-			step = Direction::Stay;
-		else {
-			step = wayHome.back();
-			wayHome.pop_back();
+		step = wayHome.front();
+		wayHome.pop_front();
+		if (wayHome.empty()) {
+			returning = false;
+			recharging = true;
 		}
 	}
-	// check if should go back to docking station (and turn on ending flag + put way of directions to the docking stations in wayHome list)
-	//else if (should go back docking station)
+	else if (recharging && !goClean()) {
+		// in docking station but needs to recharge more battery before leaving -> stay
+		step = Direction::Stay;
+	}
+	else if (!returning && !recharging && goHome()) {
+		// didn't have to return to the docking station in the last step and is not recharging atm, but now has to return to the docking station
+		step = wayHome.front();
+		wayHome.pop_front();
+		if (wayHome.empty())
+			recharging = true;
+		else
+			returning = true;
+	}
 	else {
+		// - recharged enough and should clean OR
+		// - is not recharging atm, should not go back to the docking station, and should pick a new step
+		recharging = false;
+		// (recharging == false, returning == false)
 		SensorInformation si = sensor->sense();
 		if (si.dirtLevel > 1)
 			step = Direction::Stay;
@@ -64,13 +83,13 @@ Direction Smart1::step(Direction prevStep)
 			// pick first available direction to move to different than the last step made
 			// choose last step only if it is the only available move
 			if (directions > 1) {
-				if (si.isWall[0] == false && oppositeMove(prevStep) != Direction::East)
+				if (si.isWall[0] == false && oppositeMove(lastMove) != Direction::East)
 					step = Direction::East;
-				else if (si.isWall[1] == false && oppositeMove(prevStep) != Direction::West)
+				else if (si.isWall[1] == false && oppositeMove(lastMove) != Direction::West)
 					step = Direction::West;
-				else if (si.isWall[2] == false && oppositeMove(prevStep) != Direction::South)
+				else if (si.isWall[2] == false && oppositeMove(lastMove) != Direction::South)
 					step = Direction::South;
-				else if (si.isWall[3] == false && oppositeMove(prevStep) != Direction::North)
+				else if (si.isWall[3] == false && oppositeMove(lastMove) != Direction::North)
 					step = Direction::North;
 				else
 					step = Direction::Stay;
@@ -104,6 +123,11 @@ Direction Smart1::step(Direction prevStep)
 	return step;
 }
 
+void Smart1::aboutToFinish(int stepsTillFinishing)
+{
+	moreSteps = stepsTillFinishing;
+}
+
 Direction Smart1::oppositeMove(Direction d)
 {
 	// 0->east, 1->west, 2->south, 3->north, 4->stay
@@ -122,25 +146,40 @@ Direction Smart1::oppositeMove(Direction d)
 	}
 }
 
-void Smart1::aboutToFinish(int stepsTillFinishing)
-{
-	moreSteps = stepsTillFinishing;
-}
-
-// returns true <-> should start retracking to the docking station
+// returns true <-> should start going back to the docking station
 // if true -> 1. ending flag will be true (ending = true)
-//			  2. 'wayHome' list should be updated with directions(!!) so the algorithm wil be able to pop the last direction and commit
+//			  2. 'wayHome' list should be updated with directions list(!!)
+//					so the algorithm wil be able to use the list on the its way home
 //					(without calling goHome on the way home)
 bool Smart1::goHome()
 {
+	if (house.getRobot() == house.getDocking())
+		return false;
+	// BFS (shortest path to the docking station) is implemented in MyHouse-toDocking and it returns list<Direction>
+	list<Direction> path = std::move(house.toDocking());
+	int distanceToDocking = path.size();
+	int movesToMake = curBattery / batteryConsumptionRate; // (1.9 -> 1)
+	// if moreSteps is up to date -> take into consideration
+	if (moreSteps != -1)
+		movesToMake = MIN(movesToMake, moreSteps);
+	if (distanceToDocking >= movesToMake - 2) // if so, wayHome is updated and contains the path to the docking station
+		return true;
 	return false;
-	// TODO: add BFS search on the house matrix to find out distance to docking station and find the shortest way
-	// BFS will be implemented in MyHouse/toDocking that returns list<Direction>
-	// we will use std::move to wayHome (more efficieint) and then check its length and decide whether we should go back home
+}
 
-	// notice the next example when deciding whether the robot should head back home
-	// | |_| |
-	// |D|_|R|
-	// the distance is 2, suppose the robot has 3 more moves to make: - if he chooses not to go home (go north -> he's screwed - not enough to go home)
-	// suppose the robot battery is 3 (-1 each step) and he chooses to go north... same idea
+bool Smart1::goClean()
+{
+	// don't know how many more moves yet -> check battery recharged enough
+	if (moreSteps == -1) {
+		// charged enough
+		if (curBattery > batteryCapacity / 2)
+			return true;
+		return false;
+	}
+	// check both moreSteps and curBattery and decide according to both
+	else {
+		if ((curBattery > batteryCapacity / 2) && (moreSteps >= 2))
+			return true;
+		return false;
+	}
 }

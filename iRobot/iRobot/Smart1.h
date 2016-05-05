@@ -34,7 +34,9 @@ private:
 	int batteryConsumptionRate;
 	int batteryRechargeRate;
 	MyHouse house;
-	bool ending = false; // true <-> on the way home (docking station)
+	Direction lastMove = Direction::Stay; // remember last move different than Stay
+	bool returning = false; // true <-> on the way to the docking station
+	bool recharging = false; // true <-> need to recharge battery before cleaning again
 	list<Direction> wayHome;
 public:
 	// block improperly handled constructors
@@ -49,6 +51,7 @@ public:
 private:
 	Direction oppositeMove(Direction d);
 	bool goHome();
+	bool goClean();
 };
 
 #endif // __SMART1_H

@@ -2,6 +2,7 @@
 #include <list>
 #include <map>
 #include <queue>
+#include <set>
 
 #include "Cell.h"
 #include "Direction.h"

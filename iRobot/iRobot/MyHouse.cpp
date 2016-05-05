@@ -3,8 +3,56 @@
 // return path (list) from robot to docking station
 std::list<Direction> MyHouse::toDocking()
 {
-	std::list<Direction> list;
-	return list;
+	//int length = 0;
+	// the queue is pairs of <list of directions from start (robot), last Cell in track>
+	std::queue<std::pair<std::list<Direction>, Cell>> q;
+	std::list<Direction> start;
+	q.push({ start, robot });
+	std::set<Cell> visited;
+	visited.insert(robot);
+	while (true) {
+		std::list<Direction> list = q.front().first;
+		Cell cell = q.front().second;
+		q.pop();
+		Cell east = { cell.row, cell.col + 1 };
+		Cell west = { cell.row, cell.col - 1 };
+		Cell south = { cell.row + 1, cell.col };
+		Cell north = { cell.row - 1, cell.col };
+		// if cell is known to house map, it wasn't visited and is not a wall, create a new list with it
+		if ((house.count(east) != 0) && (visited.count(east) == 0) && house[east] != 'W') {
+			std::list<Direction> newList = list;
+			newList.push_back(Direction::East);
+			if (east == docking)
+				return newList;
+			q.push({ newList, east });
+			visited.insert(east);
+		}
+		if ((house.count(west) != 0) && (visited.count(west) == 0) && house[west] != 'W') {
+			std::list<Direction> newList = list;
+			newList.push_back(Direction::West);
+			if (west == docking)
+				return newList;
+			q.push({ newList, west });
+			visited.insert(west);
+		}
+		if ((house.count(south) != 0) && (visited.count(south) == 0) && house[south] != 'W') {
+			std::list<Direction> newList = list;
+			newList.push_back(Direction::South);
+			if (south == docking)
+				return newList;
+			q.push({ newList, south });
+			visited.insert(south);
+		}
+		if ((house.count(north) != 0) && (visited.count(north) == 0) && house[north] != 'W') {
+			std::list<Direction> newList = list;
+			newList.push_back(Direction::North);
+			if (north == docking)
+				return newList;
+			q.push({ newList, north });
+			visited.insert(north);
+		}
+		//length++;
+	}
 }
 
 void MyHouse::resetHouse()
