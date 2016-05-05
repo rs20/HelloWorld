@@ -1,8 +1,11 @@
 
+#include <list>
+#include <map>
+#include <queue>
+
 #include "Cell.h"
 #include "Direction.h"
 #include "SensorInformation.h"
-#include <map>
 
 /*
 *** MyHouse is the robot's view of the house ***
@@ -26,7 +29,7 @@ public:
 	MyHouse(const MyHouse&) = delete;
 	MyHouse& operator=(const MyHouse&) = delete;
 	void resetHouse(); // called when the algorithm starts working on a new house
-	int distanceFromDocking();
+	std::list<Direction> toDocking();
 	Cell getDocking() { return docking; }
 	Cell getRobot() { return robot; }
 	void updateRobot(Direction direction);

@@ -1,8 +1,10 @@
 #include "MyHouse.h"
 
-int MyHouse::distanceFromDocking()
+// return path (list) from robot to docking station
+std::list<Direction> MyHouse::toDocking()
 {
-	return 0;
+	std::list<Direction> list;
+	return list;
 }
 
 void MyHouse::resetHouse()

@@ -2,7 +2,6 @@
 #define __SMART1_H
 
 #include <stdlib.h>
-#include <list>
 
 #include "MyHouse.h"
 #include "AbstractAlgorithm.h"

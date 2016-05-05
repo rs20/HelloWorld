@@ -10,6 +10,10 @@ typedef struct Cell
 	{
 		return ((this->row < other.row) && (this->col < other.col));
 	};
+	bool operator!=(const Cell &other) const
+	{
+		return ((this->row != other.row) || (this->col != other.col));
+	}
 } Cell;
 
 #endif //__CELL__H_

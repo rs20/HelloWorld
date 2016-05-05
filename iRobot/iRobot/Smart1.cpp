@@ -135,6 +135,8 @@ bool Smart1::goHome()
 {
 	return false;
 	// TODO: add BFS search on the house matrix to find out distance to docking station and find the shortest way
+	// BFS will be implemented in MyHouse/toDocking that returns list<Direction>
+	// we will use std::move to wayHome (more efficieint) and then check its length and decide whether we should go back home
 
 	// notice the next example when deciding whether the robot should head back home
 	// | |_| |
