@@ -23,7 +23,6 @@ Smart Algorithm 1:
 5. in each step; runs a BFS on the house (can be viewed as a graph) to check distance from docking, and then checks if should return home
 6. logic of steps:	- if current spot has dirt in it, then stay
 					- else, go to the first direction (order of precedence: east->west->south->north) different than the last step made that is available
-7. if the move chosen is opposite to the last move made -> remove both from the path
 */
 
 class Smart1 : public AbstractAlgorithm
@@ -35,8 +34,6 @@ private:
 	int curBattery;
 	int batteryConsumptionRate;
 	int batteryRechargeRate;
-	// replace MyHouse house with it:
-	//map<Cell,char> house;
 	MyHouse house;
 	bool ending = false; // true <-> on the way home (docking station)
 	list<Direction> wayHome;
