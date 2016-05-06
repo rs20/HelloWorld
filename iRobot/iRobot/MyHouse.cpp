@@ -1,9 +1,20 @@
 #include "MyHouse.h"
 
-// return path (list) from robot to docking station
-std::list<Direction> MyHouse::toDocking()
+void MyHouse::resetHouse()
 {
-	//int length = 0;
+	docking = { 0, 0 };
+	robot = { 0, 0 };
+	house.clear();
+	house = { { docking, 'D' } };
+}
+
+// return shortest path (list) from robot to the closest cell with char type
+// when type=='D' -> return shortest path to the docking station
+// returns empty list when not found (for example: cleaned the whole house -> no 'X' would be found)
+// FOR ALGORITHM 1: (may change it)
+//	when type == 'X', BFS will match type to '1'-'9' + 'X'
+std::list<Direction> MyHouse::BFS(char type)
+{
 	// the queue is pairs of <list of directions from start (robot), last Cell in track>
 	std::queue<std::pair<std::list<Direction>, Cell>> q;
 	std::list<Direction> start;
@@ -22,7 +33,12 @@ std::list<Direction> MyHouse::toDocking()
 		if (hasCell(east) && (visited.count(east) == 0) && (house.at(east) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::East);
-			if (east == docking)
+			if (type == 'X') {
+				char t = getCell(east);
+				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+					return newList;
+			}
+			else if (getCell(east) == type)
 				return newList;
 			q.push({ newList, east });
 			visited.insert(east);
@@ -30,7 +46,12 @@ std::list<Direction> MyHouse::toDocking()
 		if (hasCell(west) && (visited.count(west) == 0) && (house.at(west) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::West);
-			if (west == docking)
+			if (type == 'X') {
+				char t = getCell(west);
+				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+					return newList;
+			}
+			else if (getCell(west) == type)
 				return newList;
 			q.push({ newList, west });
 			visited.insert(west);
@@ -38,7 +59,12 @@ std::list<Direction> MyHouse::toDocking()
 		if (hasCell(south) && (visited.count(south) == 0) && (house.at(south) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::South);
-			if (south == docking)
+			if (type == 'X') {
+				char t = getCell(south);
+				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+					return newList;
+			}
+			else if (getCell(south) == type)
 				return newList;
 			q.push({ newList, south });
 			visited.insert(south);
@@ -46,24 +72,18 @@ std::list<Direction> MyHouse::toDocking()
 		if (hasCell(north) && (visited.count(north) == 0) && (house.at(north) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::North);
-			if (north == docking)
+			if (type == 'X') {
+				char t = getCell(north);
+				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+					return newList;
+			}
+			else if (getCell(north) == type)
 				return newList;
 			q.push({ newList, north });
 			visited.insert(north);
 		}
-		//length++;
 	}
-	return start; // should never reach here
-}
-
-void MyHouse::resetHouse()
-{
-	rows = 1;
-	cols = 1;
-	docking = { 0, 0 };
-	robot = { 0, 0 };
-	house.clear();
-	house = { {docking, 'D'} };
+	return start; // return empty list when no char type found
 }
 
 void MyHouse::updateRobot(Direction direction)

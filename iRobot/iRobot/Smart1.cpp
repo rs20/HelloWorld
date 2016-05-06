@@ -11,9 +11,12 @@ void Smart1::setSensor(const AbstractSensor& s)
 	curBattery = batteryCapacity;
 	returning = false;
 	recharging = false;
+	goingX = false;
 	lastMove = Direction::Stay;
 	house.resetHouse();
 	wayHome.clear();
+	xPath.clear();
+	end = false;
 }
 
 void Smart1::setConfiguration(map<string, int> config)
@@ -46,8 +49,18 @@ Direction Smart1::step(Direction prevStep)
 	house.updateRobotArea(si);
 
 	Direction step;
-	if (returning) {
-		// on the way home -> get the first move in the 'wayHome' list
+
+	// cleaned the whole house -> go to the docking station and stay there
+	if (end) {
+		if (wayHome.empty())
+			step = Direction::Stay;
+		else {
+			step = wayHome.front();
+			wayHome.pop_front();
+		}
+	}
+	// on the way home -> get the first move in the 'wayHome' list
+	else if (returning) {
 		step = wayHome.front();
 		wayHome.pop_front();
 		if (wayHome.empty()) {
@@ -55,12 +68,13 @@ Direction Smart1::step(Direction prevStep)
 			recharging = true;
 		}
 	}
+	// in docking station but needs to recharge more battery before leaving -> stay
 	else if (recharging && !goClean()) {
-		// in docking station but needs to recharge more battery before leaving -> stay
 		step = Direction::Stay;
 	}
+	// didn't have to return to the docking station in the last step and is not recharging atm, but now has to return to the docking station
 	else if (!returning && !recharging && goHome()) {
-		// didn't have to return to the docking station in the last step and is not recharging atm, but now has to return to the docking station
+		goingX = false;
 		step = wayHome.front();
 		wayHome.pop_front();
 		if (wayHome.empty())
@@ -68,16 +82,23 @@ Direction Smart1::step(Direction prevStep)
 		else
 			returning = true;
 	}
+	// on the way to a new cell with 'X'
+	else if (goingX) {
+		step = xPath.front();
+		xPath.pop_front();
+		if (xPath.empty())
+			goingX = false;
+	}
+	// - recharged enough and should clean OR
+	// - is not recharging atm, should not go back to the docking station, and should pick a new step
 	else {
-		// - recharged enough and should clean OR
-		// - is not recharging atm, should not go back to the docking station, and should pick a new step
 		recharging = false;
 		// (recharging == false, returning == false)
 		// clean all dirt, then move to a new cell
 		if (si.dirtLevel > 1)
 			step = Direction::Stay;
-		// choose first step available that is different than the last move made (if possible)
 		else {
+			// get the closest cell with 'X' and move to it
 			Cell cell = house.getRobot();
 			Cell east = { cell.row, cell.col + 1 };
 			Cell west = { cell.row, cell.col - 1 };
@@ -92,35 +113,24 @@ Direction Smart1::step(Direction prevStep)
 			else if (house.hasCell(north) && house.getCell(north) == 'X')
 				step = Direction::North;
 			else {
-				int directions = 0;
-				// count available moves
-				for (int i = 0; i < 4; i++)
-					directions += (si.isWall[i]) ? 0 : 1;
-				// pick first available direction to move to different than the last step made
-				// choose last step only if it is the only available move
-				if (directions > 1) {
-					if (si.isWall[0] == false && oppositeMove(lastMove) != Direction::East)
-						step = Direction::East;
-					else if (si.isWall[1] == false && oppositeMove(lastMove) != Direction::West)
-						step = Direction::West;
-					else if (si.isWall[2] == false && oppositeMove(lastMove) != Direction::South)
-						step = Direction::South;
-					else if (si.isWall[3] == false && oppositeMove(lastMove) != Direction::North)
-						step = Direction::North;
-					else
-						step = Direction::Stay;
+				// no immediate 'X' cells around robot
+				// run BFS to get 'path' updated to hold shortest path to the closest 'X' or '1'-'9' in the house
+				// note that we may find '1'-'9' cells (actually 9 is not possible) in case we had to go back
+				// to the docking station while cleaning a cell
+				xPath = std::move(house.BFS('X'));
+				if (xPath.empty()) {
+					end = true;
+					// no 'X' was found -> cleaned the whole house! go Home!
+					// BFS (shortest path to the docking station)
+					wayHome = std::move(house.BFS('D'));
+					step = wayHome.front();
+					wayHome.pop_front();
 				}
 				else {
-					if (si.isWall[0] == false)
-						step = Direction::East;
-					else if (si.isWall[1] == false)
-						step = Direction::West;
-					else if (si.isWall[2] == false)
-						step = Direction::South;
-					else if (si.isWall[3] == false)
-						step = Direction::North;
-					else
-						step = Direction::Stay;
+					step = xPath.front();
+					xPath.pop_front();
+					if (!xPath.empty())
+						goingX = true;
 				}
 			}
 		}
@@ -171,7 +181,7 @@ bool Smart1::goHome()
 	if (house.getRobot() == house.getDocking())
 		return false;
 	// BFS (shortest path to the docking station) is implemented in MyHouse-toDocking and it returns list<Direction>
-	wayHome = std::move(house.toDocking());
+	wayHome = std::move(house.BFS('D'));
 	int distanceToDocking = wayHome.size();
 	int movesToMake = curBattery / batteryConsumptionRate; // (1.9 -> 1)
 	// if moreSteps is up to date -> take into consideration

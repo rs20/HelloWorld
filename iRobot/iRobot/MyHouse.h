@@ -19,15 +19,13 @@ characters and meanings:
 */
 
 class MyHouse {
-	int rows = 1;
-	int cols = 1;
 	// relative position
 	Cell docking = { 0, 0 };
 	Cell robot = { 0, 0 };
 	std::map<Cell, char> house = { { docking, 'D' } };
 public:
 	void resetHouse(); // called when the algorithm starts working on a new house
-	std::list<Direction> toDocking();
+	std::list<Direction> BFS(char type);
 	Cell getDocking() { return docking; }
 	Cell getRobot() { return robot; }
 	void updateRobot(Direction direction);

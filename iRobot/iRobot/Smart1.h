@@ -21,7 +21,9 @@ Smart Algorithm 1:
 4. while cleaning, builds his own view of the house.
 5. in each step; runs a BFS on the house (can be viewed as a graph) to check distance from docking, and then checks if should return home
 6. logic of steps:	- if current spot has dirt in it, then stay
-					- else, go to the first direction (order of precedence: east->west->south->north) different than the last step made that is available
+					- else, go to the closest (BFS) cell of 'X' (not visited yet and is not a wall)
+*** IDEA TO CHANGE FOR OTHER ALGORITHMS ***
+7. this algorithm may leave cell with dirt because it needs to recharge
 */
 
 class Smart1 : public AbstractAlgorithm
@@ -37,7 +39,10 @@ private:
 	Direction lastMove = Direction::Stay; // remember last move different than Stay
 	bool returning = false; // true <-> on the way to the docking station
 	bool recharging = false; // true <-> need to recharge battery before cleaning again
-	list<Direction> wayHome;
+	bool goingX = false; // true <-> on the way to a new place with 'X'
+	list<Direction> wayHome; // after calling goHome -> it is updated and holds tha shortest path to the docking station
+	list<Direction> xPath; // used for going to the closest x in the shortest number of steps
+	bool end = false; // when cleaned the whole house
 public:
 	// block improperly handled constructors
 	Smart1() {};
