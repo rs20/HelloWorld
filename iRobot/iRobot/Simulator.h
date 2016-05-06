@@ -7,7 +7,7 @@ class Simulator {
 	int numOfHouses;
 	int numOfAlgorithms;
 	int numOfThreads;
-	bool score_loaded;
+	bool score_loaded = false;
 	void* score_hndl;
 	unique_ptr<House[]> houses;
 	AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();

@@ -19,7 +19,7 @@ std::list<Direction> MyHouse::toDocking()
 		Cell south = { cell.row + 1, cell.col };
 		Cell north = { cell.row - 1, cell.col };
 		// if cell is known to house map, it wasn't visited and is not a wall, create a new list with it
-		if (hasCell(east) && ((visited.find(east) == visited.end()) || (*(visited.find(east)) != east)) && (house.at(east) != 'W')) {
+		if (hasCell(east) && (visited.count(east) == 0) && (house.at(east) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::East);
 			if (east == docking)
@@ -27,7 +27,7 @@ std::list<Direction> MyHouse::toDocking()
 			q.push({ newList, east });
 			visited.insert(east);
 		}
-		if (hasCell(west) && ((visited.find(west) == visited.end()) || (*(visited.find(west)) != west)) && (house.at(west) != 'W')) {
+		if (hasCell(west) && (visited.count(west) == 0) && (house.at(west) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::West);
 			if (west == docking)
@@ -35,7 +35,7 @@ std::list<Direction> MyHouse::toDocking()
 			q.push({ newList, west });
 			visited.insert(west);
 		}
-		if (hasCell(south) && ((visited.find(south) == visited.end()) || (*(visited.find(south)) != south)) && (house.at(south) != 'W')) {
+		if (hasCell(south) && (visited.count(south) == 0) && (house.at(south) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::South);
 			if (south == docking)
@@ -43,7 +43,7 @@ std::list<Direction> MyHouse::toDocking()
 			q.push({ newList, south });
 			visited.insert(south);
 		}
-		if (hasCell(north) && ((visited.find(north) == visited.end()) || (*(visited.find(north)) != north)) && (house.at(north) != 'W')) {
+		if (hasCell(north) && (visited.count(north) == 0) && (house.at(north) != 'W')) {
 			std::list<Direction> newList = list;
 			newList.push_back(Direction::North);
 			if (north == docking)
@@ -80,12 +80,7 @@ void MyHouse::updateRobot(Direction direction)
 
 bool MyHouse::hasCell(Cell cell)
 {
-	auto search = house.find(cell);
-	if (search == house.end())
-		return false;
-	if (search->first == cell)
-		return true;
-	return false;
+	return (house.count(cell) > 0);
 }
 
 void MyHouse::updateCell(Cell cell, char type)
@@ -98,9 +93,9 @@ void MyHouse::updateRobotArea(SensorInformation si)
 {
 	// update house according to SensorInformation
 	// update current cell dirt level
-	if (si.dirtLevel > 0) {
+	if (robot != docking) {
 		// cleans 1 amount of dirt during the current step
-		if (si.dirtLevel == 1)
+		if (si.dirtLevel == 0 || si.dirtLevel == 1)
 			updateCell(robot, ' ');
 		else
 			updateCell(robot, (si.dirtLevel - 1) + '0');

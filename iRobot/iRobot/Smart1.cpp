@@ -41,11 +41,9 @@ Direction Smart1::step(Direction prevStep)
 		curBattery += batteryRechargeRate;
 	curBattery = MIN(curBattery, batteryCapacity);
 
-	// update area on start, when not on start -> update only when not returning / recharging
-	if (start) {
-		SensorInformation si = sensor->sense();
-		house.updateRobotArea(si);
-	}
+	// update area
+	SensorInformation si = sensor->sense();
+	house.updateRobotArea(si);
 
 	Direction step;
 	if (returning) {
@@ -75,8 +73,6 @@ Direction Smart1::step(Direction prevStep)
 		// - is not recharging atm, should not go back to the docking station, and should pick a new step
 		recharging = false;
 		// (recharging == false, returning == false)
-		SensorInformation si = sensor->sense();
-		house.updateRobotArea(si);
 		// clean all dirt, then move to a new cell
 		if (si.dirtLevel > 1)
 			step = Direction::Stay;
@@ -131,9 +127,7 @@ Direction Smart1::step(Direction prevStep)
 	}
 
 	// consume battery only if did not start the move from the docking station
-	Cell robot = house.getRobot();
-	Cell docking = house.getDocking();
-	if (robot.row != docking.row || robot.col != docking.col)
+	if (house.getRobot() != house.getDocking())
 		curBattery -= batteryConsumptionRate;
 	
 	// do not update spot according to 'step' chosen because simulator may not choose the algorithm's suggested step!
@@ -177,8 +171,8 @@ bool Smart1::goHome()
 	if (house.getRobot() == house.getDocking())
 		return false;
 	// BFS (shortest path to the docking station) is implemented in MyHouse-toDocking and it returns list<Direction>
-	list<Direction> path = std::move(house.toDocking());
-	int distanceToDocking = path.size();
+	wayHome = std::move(house.toDocking());
+	int distanceToDocking = wayHome.size();
 	int movesToMake = curBattery / batteryConsumptionRate; // (1.9 -> 1)
 	// if moreSteps is up to date -> take into consideration
 	if (moreSteps != -1)
