@@ -104,14 +104,25 @@ Direction Smart1::step(Direction prevStep)
 			Cell west = { cell.row, cell.col - 1 };
 			Cell south = { cell.row + 1, cell.col };
 			Cell north = { cell.row - 1, cell.col };
-			if (house.hasCell(east) && house.getCell(east) == 'X')
+			// first clean immediate dirt around you
+			if (house.hasCell(east) && (house.getCell(east) > '0') && (house.getCell(east) <= '9'))
 				step = Direction::East;
-			else if (house.hasCell(west) && house.getCell(west) == 'X')
+			else if (house.hasCell(west) && (house.getCell(west) > '0') && (house.getCell(west) <= '9'))
 				step = Direction::West;
-			else if (house.hasCell(south) && house.getCell(south) == 'X')
+			else if (house.hasCell(south) && (house.getCell(south) > '0') && (house.getCell(south) <= '9'))
 				step = Direction::South;
-			else if (house.hasCell(north) && house.getCell(north) == 'X')
+			else if (house.hasCell(north) && (house.getCell(north) > '0') && (house.getCell(north) <= '9'))
 				step = Direction::North;
+			// then go to immediate X around you
+			else if (house.hasCell(east) && (house.getCell(east) == 'X'))
+				step = Direction::East;
+			else if (house.hasCell(west) && (house.getCell(west) == 'X'))
+				step = Direction::West;
+			else if (house.hasCell(south) && (house.getCell(south) == 'X'))
+				step = Direction::South;
+			else if (house.hasCell(north) && (house.getCell(north) == 'X'))
+				step = Direction::North;
+			// then search for the closest X / dirt
 			else {
 				// no immediate 'X' cells around robot
 				// run BFS to get 'path' updated to hold shortest path to the closest 'X' or '1'-'9' in the house
@@ -197,13 +208,13 @@ bool Smart1::goClean()
 	// don't know how many more moves yet -> check battery recharged enough
 	if (moreSteps == -1) {
 		// charged enough
-		if (curBattery > batteryCapacity / 2)
+		if (curBattery == batteryCapacity)
 			return true;
 		return false;
 	}
 	// check both moreSteps and curBattery and decide according to both
 	else {
-		if ((curBattery > batteryCapacity / 2) && (moreSteps >= 2))
+		if ((curBattery == batteryCapacity) && (moreSteps >= 2))
 			return true;
 		return false;
 	}

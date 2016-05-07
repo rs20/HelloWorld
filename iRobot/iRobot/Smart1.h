@@ -24,6 +24,7 @@ Smart Algorithm 1:
 					- else, go to the closest (BFS) cell of 'X' (not visited yet and is not a wall)
 *** IDEA TO CHANGE FOR OTHER ALGORITHMS ***
 7. this algorithm may leave cell with dirt because it needs to recharge
+8. recharges until full battery when back to docking station
 */
 
 class Smart1 : public AbstractAlgorithm

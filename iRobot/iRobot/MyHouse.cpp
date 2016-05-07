@@ -35,7 +35,7 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::East);
 			if (type == 'X') {
 				char t = getCell(east);
-				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X')
 					return newList;
 			}
 			else if (getCell(east) == type)
@@ -48,7 +48,7 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::West);
 			if (type == 'X') {
 				char t = getCell(west);
-				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X')
 					return newList;
 			}
 			else if (getCell(west) == type)
@@ -61,7 +61,7 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::South);
 			if (type == 'X') {
 				char t = getCell(south);
-				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X')
 					return newList;
 			}
 			else if (getCell(south) == type)
@@ -74,7 +74,7 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::North);
 			if (type == 'X') {
 				char t = getCell(north);
-				if (t == '1' || t == '2' || t == '3' || t == '4' || t == '5' || t == '6' || t == '7' || t == '8' || t == '9' || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X')
 					return newList;
 			}
 			else if (getCell(north) == type)
