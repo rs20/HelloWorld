@@ -1,4 +1,3 @@
-//#include "stdafx.h"
 #include "Smart1.h"
 
 REGISTER_ALGORITHM(Smart1)
@@ -36,6 +35,18 @@ Direction Smart1::step(Direction prevStep)
 	// update robot's position according to the last move that the simulator actually made with the robot
 	// as the exercise specifies, the simulator may not work always according to the algorithm's suggested move
 	house.updateRobot(prevStep);
+
+	// check if the simulator took the algorithm's advice with the last steps
+	if (prevStep != lastMove) {
+		// reset all! algorithm will recalculate destination
+		returning = false;
+		recharging = false;
+		goingX = false;
+		end = false;
+		wayHome.clear();
+		xPath.clear();
+	}
+	// update
 	if (prevStep != Direction::Stay)
 		lastMove = prevStep;
 
@@ -153,6 +164,7 @@ Direction Smart1::step(Direction prevStep)
 	
 	// do not update spot according to 'step' chosen because simulator may not choose the algorithm's suggested step!
 	// updated only at start of this method (sense) -> the simulator passes the actual step that has been made
+	lastMove = step;
 
 	if (moreSteps != -1)
 		moreSteps--;

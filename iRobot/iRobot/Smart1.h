@@ -1,6 +1,3 @@
-#ifndef __SMART1_H
-#define __SMART1_H
-
 #include <stdlib.h>
 
 #include "MyHouse.h"
@@ -22,9 +19,7 @@ Smart Algorithm 1:
 5. in each step; runs a BFS on the house (can be viewed as a graph) to check distance from docking, and then checks if should return home
 6. logic of steps:	- if current spot has dirt in it, then stay
 					- else, go to the closest (BFS) cell of 'X' (not visited yet and is not a wall)
-*** IDEA TO CHANGE FOR OTHER ALGORITHMS ***
-7. this algorithm may leave cell with dirt because it needs to recharge
-8. recharges until full battery when back to docking station
+7. recharges until full battery when back to docking station
 */
 
 class Smart1 : public AbstractAlgorithm
@@ -37,7 +32,7 @@ private:
 	int batteryConsumptionRate;
 	int batteryRechargeRate;
 	MyHouse house;
-	Direction lastMove = Direction::Stay; // remember last move different than Stay
+	Direction lastMove = Direction::Stay; // remember last move (that is different than Stay)
 	bool returning = false; // true <-> on the way to the docking station
 	bool recharging = false; // true <-> need to recharge battery before cleaning again
 	bool goingX = false; // true <-> on the way to a new place with 'X'
@@ -59,5 +54,3 @@ private:
 	bool goHome();
 	bool goClean();
 };
-
-#endif // __SMART1_H
