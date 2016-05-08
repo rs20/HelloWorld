@@ -20,6 +20,7 @@ Smart Algorithm 1:
 6. logic of steps:	- if current spot has dirt in it, then stay
 					- else, go to the closest (BFS) cell of 'X' (not visited yet and is not a wall)
 7. recharges until full battery when back to docking station
+8. preference order of steps (left to right): east, west, south, north, stay
 */
 
 class Smart1 : public AbstractAlgorithm
