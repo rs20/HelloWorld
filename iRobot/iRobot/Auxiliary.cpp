@@ -54,10 +54,7 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	values["BatteryCapacity"] = false;
 	values["BatteryConsumptionRate"] = false;
 	values["BatteryRechargeRate"] = false;
-	int errorInFile = 0; // 0 : no error , -1 : here is an error.
-	char* end;
-	int numBadValues = 0;
-
+	
 	// check if file exists - if not, return
 	struct stat st;
 	if (stat(fullFileName.c_str(), &st) == -1)
@@ -72,17 +69,6 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 			std::vector<std::string> tokens = split(line, '=');
 			if (tokens.size() != 2)
 				continue;
-			if (tokens[1].empty() || (!isdigit((tokens[1])[0]))) // if the string doesn't represent a number, define the number to be -1;
-			{
-				config[trim(tokens[0])] = -1;
-				continue;
-			}
-			strtol(tokens[1].c_str(), &end, 10); // // if the string doesn't represent a number, define the number to be -1;
-			if (*end != 0)
-			{
-				config[trim(tokens[0])] = -1;
-				continue;
-			}
 			config[trim(tokens[0])] = atoi(tokens[1].c_str());
 		}
 		myfile.close();
@@ -129,48 +115,24 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 			}
 		}
 		std::cout << std::endl;
-		errorInFile = - 1;
+		return -1;
 	}
 
-	//count the number of bad values.
-	for (std::map<std::string, int>::iterator it = config.begin(); it != config.end(); it++) {
-		if (it->second < 0)	{
-			numBadValues++;
-		}
-	}
-
-	//print all the bad values.
-	if (numBadValues>0)
-	{
-		errorInFile = -1;
-		std::cout << ERROR_CONFIG_FILE_BAD_VALUE << numBadValues << " parameter(s): ";
-		for (std::map<std::string, int>::iterator it = config.begin(); it != config.end(); it++) {
-			if (it->second < 0)	{
-				if (numBadValues>1)
-					std::cout << it->first << ", ";
-				else
-					std::cout << it->first << endl;
-				numBadValues--;
-			}
-		}
-
-	}
-
-	return errorInFile;
+	return 0;
 }
 
 // return 0 for ok / -1 for .... / -2 for
-int handleScoreFile(std::string scorePath, void* hndl, int (**score_function)(const map<string, int>& score_params))
+int handleScoreFile(std::string scorePath, void* hndl)
 {
-	std::string fullFileName = scorePath + defaultScoreFile;
 	bool found = false;
 	DIR *pDIR;
 	struct stat st;
-	if (stat(scorePath.c_str(), &st) == -1) // error (we know the directory exists)
-	{
-		return -2;
+	if (!(scorePath.empty())) {
+		if (stat(scorePath.c_str(), &st) == -1) // error (we know the directory exists)
+		{
+			return -1;
+		}
 	}
-
 	struct dirent *entry;
 	std::string temp = "";
 	if ((pDIR = opendir(scorePath.empty() ? "." : scorePath.c_str())))
@@ -188,7 +150,6 @@ int handleScoreFile(std::string scorePath, void* hndl, int (**score_function)(co
 					{
 						if (!strcmp(temp_name.c_str(), "score_formula")) {
 							found = true;
-							break;
 						}
 					}
 				}
@@ -199,33 +160,15 @@ int handleScoreFile(std::string scorePath, void* hndl, int (**score_function)(co
 	}
 	else
 	{
-		return -2;
+		// return
 	}
-
 	if (!found)
 	{
-		return -2;
+		// return
 	}
 
-
-	//found the score formula, try to load it dynamically:
-
-	hndl = dlopen(fullFileName.c_str(), RTLD_NOW);;
-	if (hndl == NULL)
-	{
-		std::cout << "score_formula.so exist in " << scorePath << " but cannot be opened or is not a valid .so"  << endl;
-		return -1;
-	}
-
-	dlerror();    /* Clear any existing error */
-
-	*(void **)(score_function) = dlsym(hndl, "calc_score");
-	if (dlerror() != NULL)  
-	{
-		std::cout << ERROR_NOT_VALID_SCORE << endl;
-		return -1;
-	}
-
+	// TODO: found - dlopen and assign hndl to 'score_hndl'
+	
 	return 0;
 }
 

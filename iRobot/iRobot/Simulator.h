@@ -8,12 +8,11 @@ class Simulator {
 	int numOfAlgorithms;
 	int numOfThreads;
 	bool score_loaded = false;
-	void* score_hndl = NULL;
-	int (*score_function)(const map<string, int>& score_params);
+	void* score_hndl;
 	unique_ptr<House[]> houses;
 	AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 	std::map<string, int> config = {};
-	vector<string> flags{ defaultConfigPath, defaultScorePath, defaultHousePath, defaultAlgorithmPath, defaultThreads };
+	vector<string> flags{ defaultConfigPath, defaultScorePath, defaultHousePath, defaultAlgorithmPath };
 public:
 	void handleArguments(int argc, const char* argv[]);
 	int handleConfiguration();

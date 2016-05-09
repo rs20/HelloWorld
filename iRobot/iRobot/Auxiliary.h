@@ -35,19 +35,10 @@
 #define defaultAlgorithmPath ""
 #define defaultScorePath ""
 #define defaultConfigFile "config.ini"
-#define defaultScoreFile "score_formula.so"
-#define defaultThreads "1"
 
 #define USAGE "Usage: simulator [-config <config path>] [-house_path <house path>] [-algorithm_path <algorithm path>] \
 [-score_formula <score .so path>] [-threads <num threads>]"
 
-#define ERROR_CALCULATE_SCORE "Score formula could not calculate some scores, see -1 in the results table"
-#define ERROR_FIND_SCORE_FILE "cannot find score_formula.so in "
-#define ERROR_FIND_ALGORITHM_FILES "cannot find algorithm files in "
-#define ERROR_FIND_HOUSE_FILES "cannot find house files in "
-#define ERROR_NOT_VALID_SCORE "score_formula.so is valid .so but it does not have a valid score formula"
-#define ERROR_FIND_CONFIG_FILE "cannot find config.ini in "
-#define ERROR_CONFIG_FILE_BAD_VALUE "config.ini having bad value for "
 #define ERROR_OPEN_HOUSE_FILE "cannot open file"
 #define ERROR_CONFIG_FILE1 "config.ini exists in "
 #define ERROR_CONFIG_FILE2 " but cannot be opened"
@@ -69,7 +60,7 @@
 std::string handleSlash(const char* path);
 int handleConfigFile(std::string configPath, std::map<std::string, int>& config);
 std::wstring stringToWstring(const std::string& s);
-int handleScoreFile(std::string scorePath, void* hndl, int(**score_function)(const map<string, int>& score_params));
+int handleScoreFile(std::string scorePath, void* hndl);
 int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
 int getNumberOfHouses(std::string housePath);
 int getNumberOfPotentialAlgorithms(std::string algorithmPath);

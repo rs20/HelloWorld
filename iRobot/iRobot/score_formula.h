@@ -12,6 +12,4 @@ map contains:
 6. dirt collected
 7. is back in docking
 */
-extern "C" {
-	int calc_score(const map<string, int>& score_params);
-}
+int calc_score(const map<string, int>& score_params);
