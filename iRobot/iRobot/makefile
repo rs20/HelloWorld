@@ -12,6 +12,7 @@ LD_FLAGS = -lm
 simulator: $(obj)
 	g++ -o $@ $^ $(CXXFLAGS)
 	g++ -std=c++11 -shared -fPIC -o Smart1.so Smart1.cpp
+	g++ -std=c++11 -shared -fPIC -o score_formula.so score_formula.cpp
 .PHONY: clean
 clean:
 	rm -f $(obj) simulator
