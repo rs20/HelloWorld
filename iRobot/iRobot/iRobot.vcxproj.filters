@@ -81,6 +81,12 @@
     <ClInclude Include="Smart1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Smart2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Smart3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -117,6 +123,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Smart1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Smart2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Smart3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

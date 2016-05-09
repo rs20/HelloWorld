@@ -1,4 +1,3 @@
-//#include "stdafx.h"
 #include "Smart1.h"
 
 REGISTER_ALGORITHM(Smart1)
@@ -36,6 +35,18 @@ Direction Smart1::step(Direction prevStep)
 	// update robot's position according to the last move that the simulator actually made with the robot
 	// as the exercise specifies, the simulator may not work always according to the algorithm's suggested move
 	house.updateRobot(prevStep);
+
+	// check if the simulator took the algorithm's advice with the last steps
+	if (prevStep != lastMove) {
+		// reset all! algorithm will recalculate destination
+		returning = false;
+		recharging = false;
+		goingX = false;
+		end = false;
+		wayHome.clear();
+		xPath.clear();
+	}
+	// update
 	if (prevStep != Direction::Stay)
 		lastMove = prevStep;
 
@@ -104,14 +115,25 @@ Direction Smart1::step(Direction prevStep)
 			Cell west = { cell.row, cell.col - 1 };
 			Cell south = { cell.row + 1, cell.col };
 			Cell north = { cell.row - 1, cell.col };
-			if (house.hasCell(east) && house.getCell(east) == 'X')
+			// first clean immediate dirt around you
+			if (house.hasCell(east) && (house.getCell(east) > '0') && (house.getCell(east) <= '9'))
 				step = Direction::East;
-			else if (house.hasCell(west) && house.getCell(west) == 'X')
+			else if (house.hasCell(west) && (house.getCell(west) > '0') && (house.getCell(west) <= '9'))
 				step = Direction::West;
-			else if (house.hasCell(south) && house.getCell(south) == 'X')
+			else if (house.hasCell(south) && (house.getCell(south) > '0') && (house.getCell(south) <= '9'))
 				step = Direction::South;
-			else if (house.hasCell(north) && house.getCell(north) == 'X')
+			else if (house.hasCell(north) && (house.getCell(north) > '0') && (house.getCell(north) <= '9'))
 				step = Direction::North;
+			// then go to immediate X around you
+			else if (house.hasCell(east) && (house.getCell(east) == 'X'))
+				step = Direction::East;
+			else if (house.hasCell(west) && (house.getCell(west) == 'X'))
+				step = Direction::West;
+			else if (house.hasCell(south) && (house.getCell(south) == 'X'))
+				step = Direction::South;
+			else if (house.hasCell(north) && (house.getCell(north) == 'X'))
+				step = Direction::North;
+			// then search for the closest X / dirt
 			else {
 				// no immediate 'X' cells around robot
 				// run BFS to get 'path' updated to hold shortest path to the closest 'X' or '1'-'9' in the house
@@ -142,6 +164,7 @@ Direction Smart1::step(Direction prevStep)
 	
 	// do not update spot according to 'step' chosen because simulator may not choose the algorithm's suggested step!
 	// updated only at start of this method (sense) -> the simulator passes the actual step that has been made
+	lastMove = step;
 
 	if (moreSteps != -1)
 		moreSteps--;
@@ -197,13 +220,13 @@ bool Smart1::goClean()
 	// don't know how many more moves yet -> check battery recharged enough
 	if (moreSteps == -1) {
 		// charged enough
-		if (curBattery > batteryCapacity / 2)
+		if (curBattery == batteryCapacity)
 			return true;
 		return false;
 	}
 	// check both moreSteps and curBattery and decide according to both
 	else {
-		if ((curBattery > batteryCapacity / 2) && (moreSteps >= 2))
+		if ((curBattery == batteryCapacity) && (moreSteps >= 2))
 			return true;
 		return false;
 	}
