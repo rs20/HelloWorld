@@ -13,9 +13,11 @@ void Simulator::startSimulation()
 	vector<vector<int>> scores(numOfHouses, vector<int>(numOfAlgorithms));
 	vector<pair<int,pair<string,vector<int>>>> avg_scores; // avg score of an algorithm + its name + its scores
 	vector<string> walkingIntoWallsErrors;
+	map<string, int> score_params;
 	auto algorithms = registrar.getAlgorithms();
 	auto& algorithmNames = registrar.getAlgorithmNames();
 	bool is_back_in_docking;
+	bool is_error_in_calculation_of_score = false;
 
 	// specific to house
 	int max_steps;
@@ -272,16 +274,43 @@ void Simulator::startSimulation()
 		// if none won -> winner num steps = simulation num steps
 		// TODO: call the right score method (Score.h or calc_score from the loaded score_formula.so)
 		// (call calc_score if score_loaded==true (field in Simulator.h) and call the score method in Score.h when it's false
+
 		if (winner_num_steps == -1)
 			winner_num_steps = simulation_num_steps;
 		for (int l = 0; l < numOfAlgorithms; l++) {
 			is_back_in_docking = (curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) ? true : false;
 			if (into_wall[l] == true) // if walked into a wall, score=0
 				scores[k][l] = 0;
-			else if (houses[k].sumOfDirt == 0 && is_back_in_docking)
-				scores[k][l] = score(positionInComp[l], winner_num_steps, numSteps[l], curHouses[l].initialSumOfDirt - curHouses[l].sumOfDirt, curHouses[l].initialSumOfDirt, is_back_in_docking);
 			else
-				scores[k][l] = score(10, winner_num_steps, numSteps[l], curHouses[l].initialSumOfDirt - curHouses[l].sumOfDirt, curHouses[l].initialSumOfDirt, is_back_in_docking);
+			{
+				score_params["simulation_steps"] = simulation_num_steps;
+				score_params["winner_num_steps"] = winner_num_steps;
+				score_params["this_num_steps"] = numSteps[l];
+				score_params["sum_dirt_in_house"] = curHouses[l].initialSumOfDirt;
+				score_params["dirt_collected"] = curHouses[l].initialSumOfDirt - curHouses[l].sumOfDirt;
+				score_params["is_back_in_docking"] = is_back_in_docking;
+
+				if (curHouses[k].sumOfDirt == 0 && is_back_in_docking)
+				{
+					score_params["actual_position_in_competition"] = positionInComp[l];
+				}
+				else
+				{
+					score_params["actual_position_in_competition"] = 10;
+				}
+
+				if (score_function != NULL)
+				{
+					scores[k][l] = (*score_function)(score_params);
+				}
+				else
+				{
+					scores[k][l] = score(score_params);
+				}
+
+				if (scores[k][l] == -1)
+					is_error_in_calculation_of_score = true;
+			}
 		}
 		if (DEBUG)
 			getchar();
@@ -382,6 +411,12 @@ void Simulator::startSimulation()
 			cout << *it << endl;
 		}
 	}
+
+	//print score error:
+	if (is_error_in_calculation_of_score)
+	{
+		cout << ERROR_CALCULATE_SCORE << endl;
+	}
 }
 
 void Simulator::handleArguments(int argc, const char* argv[])
@@ -405,6 +440,10 @@ void Simulator::handleArguments(int argc, const char* argv[])
 			flags[3] = argv[i + 1];
 			i += 2;
 		}
+		else if (!strcmp(argv[i], "-threads")) {
+			flags[4] = argv[i + 1];
+			i += 2;
+		}
 		else {
 			i++;
 		}
@@ -417,7 +456,10 @@ int Simulator::handleConfiguration()
 	int handle = handleConfigFile(handleSlash((flags[0]).c_str()), config);
 	if (handle < 0) {
 		if (handle == -2)
+		{
 			cout << USAGE << endl;
+			cout << ERROR_FIND_CONFIG_FILE << handleSlash((flags[0]).c_str()) << endl;
+		}
 		return -1;
 	}
 	return 0;
@@ -428,10 +470,18 @@ int Simulator::handleConfiguration()
 int Simulator::handleScore()
 {
 	if (!score_loaded)
+	{
+		score_function = NULL;
 		return 0;
-	int handle = handleScoreFile(handleSlash((flags[1]).c_str()), score_hndl);
+	}
+
+	int handle = handleScoreFile(handleSlash((flags[1]).c_str()), score_hndl, &score_function);
 	if (handle < 0) {
-		return -1; // NOT DONE! should handle errors
+		if (handle == -2){
+			cout << USAGE << endl;
+			std::cout << ERROR_FIND_SCORE_FILE << handleSlash((flags[1]).c_str()) << std::endl;
+		}
+		return -1; 
 	}
 	return 0;
 }
@@ -453,16 +503,19 @@ int Simulator::handleAlgorithms()
 	numOfAlgorithms = getNumberOfPotentialAlgorithms(flags[3]);
 	if (numOfAlgorithms == -1 || numOfAlgorithms == 0) {
 		cout << USAGE << endl;
+		cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl;
 		return -1;
 	}
 	if (numOfAlgorithms == -2) { // search recursive in the working directory
 		if (flags[3].empty()) { // already searched in there.. -> return
 			cout << USAGE << endl;
+			cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl;
 			return -1;
 		}
 		numOfAlgorithms = getNumberOfPotentialAlgorithms(""); // search in the working directory
 		if (numOfAlgorithms <= 0) {
 			cout << USAGE << endl;
+			cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl;
 			return -1;
 		}
 		else {
@@ -490,16 +543,19 @@ int Simulator::handleHouses()
 	numOfHouses = getNumberOfHouses(handleSlash((flags[2]).c_str()));
 	if (numOfHouses == -1 || numOfHouses == 0) {
 		cout << USAGE << endl;
+		cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
 		return -1;
 	}
 	if (numOfHouses == -2) { // search recursive in the working directory
 		if (flags[2].empty()) { // already searched in there.. -> return
 			cout << USAGE << endl;
+			cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
 			return -1;
 		}
 		numOfHouses = getNumberOfHouses(""); // search in the working directory
 		if (numOfHouses <= 0) {
 			cout << USAGE << endl;
+			cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
 			return -1;
 		}
 		else {
@@ -531,6 +587,8 @@ void Simulator::end()
 	// free dynamic loaded files
 	registrar.clearFactories();
 	registrar.clearHndls();
+	if (score_hndl != NULL)
+		dlclose(score_hndl);
 }
 
 int main(int argc, const char* argv[])
