@@ -25,7 +25,7 @@ class MyHouse {
 	std::map<Cell, char> house = { { docking, 'D' } };
 public:
 	void resetHouse(); // called when the algorithm starts working on a new house
-	std::list<Direction> BFS(Cell start, char type);
+	std::list<Direction> BFS(Cell start, Cell &end, char type);
 	Cell getDocking() { return docking; }
 	Cell getRobot() { return robot; }
 	void updateRobot(Direction direction);

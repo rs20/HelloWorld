@@ -13,7 +13,7 @@ void MyHouse::resetHouse()
 // returns empty list when not found (for example: cleaned the whole house -> no 'X' would be found)
 // FOR ALGORITHM 1: (may change it)
 //	when type == 'X', BFS will match type to '1'-'9' + 'X'
-std::list<Direction> MyHouse::BFS(Cell start, char type)
+std::list<Direction> MyHouse::BFS(Cell start, Cell &end, char type)
 {
 	// the queue is pairs of <list of directions from start (robot), last Cell in track>
 	std::queue<std::pair<std::list<Direction>, Cell>> q;
@@ -36,12 +36,12 @@ std::list<Direction> MyHouse::BFS(Cell start, char type)
 			if (type == 'X') {
 				char t = getCell(east);
 				if (((t > '0') && (t <= '9')) || t == 'X') {
-					//end = east;
+					end = east;
 					return newList;
 				}
 			}
 			else if (getCell(east) == type) {
-				//end = east;
+				end = east;
 				return newList;
 			}
 			q.push({ newList, east });
@@ -53,12 +53,12 @@ std::list<Direction> MyHouse::BFS(Cell start, char type)
 			if (type == 'X') {
 				char t = getCell(west);
 				if (((t > '0') && (t <= '9')) || t == 'X') {
-					//end = west;
+					end = west;
 					return newList;
 				}
 			}
 			else if (getCell(west) == type) {
-				//end = west;
+				end = west;
 				return newList;
 			}
 			q.push({ newList, west });
@@ -70,12 +70,12 @@ std::list<Direction> MyHouse::BFS(Cell start, char type)
 			if (type == 'X') {
 				char t = getCell(south);
 				if (((t > '0') && (t <= '9')) || t == 'X') {
-					//end = south;
+					end = south;
 					return newList;
 				}
 			}
 			else if (getCell(south) == type) {
-				//end = south;
+				end = south;
 				return newList;
 			}
 			q.push({ newList, south });
@@ -87,19 +87,19 @@ std::list<Direction> MyHouse::BFS(Cell start, char type)
 			if (type == 'X') {
 				char t = getCell(north);
 				if (((t > '0') && (t <= '9')) || t == 'X') {
-					//end = north;
+					end = north;
 					return newList;
 				}
 			}
 			else if (getCell(north) == type) {
-				//end = north;
+				end = north;
 				return newList;
 			}
 			q.push({ newList, north });
 			visited.insert(north);
 		}
 	}
-	//end = start;
+	end = start;
 	return emptyPath; // return empty list when no char type found
 }
 

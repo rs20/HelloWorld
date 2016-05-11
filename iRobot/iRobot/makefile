@@ -16,4 +16,4 @@ simulator: $(obj)
 .PHONY: clean
 clean:
 	rm -f $(obj) simulator
-	rm -f 313178576_A_.so
+	rm -f score_formula.so 313178576_A_.so

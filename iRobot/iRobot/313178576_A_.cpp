@@ -128,21 +128,50 @@ Direction _313178576_A::step(Direction prevStep)
 				// note that we may find '1'-'9' cells (actually 9 is not possible) in case we had to go back
 				// to the docking station while cleaning a cell
 				Cell xCell;
-				xPath = std::move(house.BFS(house.getRobot(), 'X'));
+				xPath = std::move(house.BFS(house.getRobot(), xCell, 'X'));
 				if (xPath.empty()) {
 					end = true;
 					// no 'X' was found -> cleaned the whole house! go Home!
 					// BFS (shortest path to the docking station)
 					Cell homeCell;
-					wayHome = std::move(house.BFS(house.getRobot(), 'D'));
+					wayHome = std::move(house.BFS(house.getRobot(), homeCell, 'D'));
 					step = wayHome.front();
 					wayHome.pop_front();
 				}
 				else {
-					step = xPath.front();
-					xPath.pop_front();
-					if (!xPath.empty())
-						goingX = true;
+					// check if has enough battery to get to the 'X', if not -> go to the Docking station
+					Cell homeCell;
+					wayHome = std::move(house.BFS(xCell, homeCell, 'D'));
+					int distance = xPath.size() + wayHome.size();
+					wayHome.clear();
+					int movesToMake = curBattery / batteryConsumptionRate;
+					if (moreSteps != -1)
+						movesToMake = MIN(movesToMake, moreSteps);
+					// not enough to 'X' + home => just go home
+					if (distance >= movesToMake - 2) {
+						xPath.clear();
+						wayHome = std::move(house.BFS(house.getRobot(), homeCell, 'D'));
+						// in case already in D and the X is impossible to reach -> stay
+						if (wayHome.empty()) {
+							end = true;
+							step = Direction::Stay;
+						}
+						else {
+							step = wayHome.front();
+							wayHome.pop_front();
+							returning = true;
+							if (wayHome.empty()) {
+								returning = false;
+								recharging = true;
+							}
+						}
+					}
+					else {
+						step = xPath.front();
+						xPath.pop_front();
+						if (!xPath.empty())
+							goingX = true;
+					}
 				}
 			}
 		}
@@ -172,7 +201,7 @@ bool _313178576_A::goHome()
 		return false;
 	// BFS (shortest path to the docking station) is implemented in MyHouse-toDocking and it returns list<Direction>
 	Cell homeCell;
-	wayHome = std::move(house.BFS(house.getRobot(), 'D'));
+	wayHome = std::move(house.BFS(house.getRobot(), homeCell, 'D'));
 	int distanceToDocking = wayHome.size();
 	int movesToMake = curBattery / batteryConsumptionRate; // (1.9 -> 1)
 	// if moreSteps is up to date -> take into consideration
