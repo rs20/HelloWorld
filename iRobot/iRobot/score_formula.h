@@ -3,6 +3,7 @@ using namespace std;
 #include <map>
 
 /*
+the implementation of calc_score shall be (optional) dynamically loaded with 'score_formula.so'
 map contains:
 1. actual position in competition
 2. simulation steps

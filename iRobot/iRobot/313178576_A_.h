@@ -1,58 +1,37 @@
-#ifndef __ALGORITHM_A_H
-#define __ALGORITHM_A_H
-
-#include <stdlib.h>
-#include <list>
-
-#include "Direction.h"
-#include "AbstractAlgorithm.h"
-#include "MakeUnique.h"
-#include "AlgorithmRegistration.h"
-
-#ifndef __MIN_
-#define __MIN_
-#define MIN(a,b) (((a)<(b)) ? (a):(b))
-#endif
+#include "SuperAlgorithm.h"
 
 /*
-First Algorithm A:
-1. rememebrs the path to the docking station.
-2. does not know where the docking station is, but only how to return to it.
-3. hence, is not able to reset path to docking station if entered docking station not on purpose
-4. hence, does not know if the battery was charged.
-5. logic of steps: - if current spot has dirt in it, then stay
-- else, go to direction (in new order precedences: east->south->west->north) that is different than the last move made
-6. if the move chosen is opposite to the last move made -> remove both from the path (the algorithm is not that dumb)
+Smart Algorithm 1:
+1. remembers where the docking station is.
+2. hence, is able to reset path to docking station if entered docking station once again
+3. hence, knows if the battery was charged.
+4. while cleaning, builds his own view of the house.
+5. in each step; runs a BFS on the house (can be viewed as a graph) to check distance from docking, and then checks if should return home
+6. logic of steps:	- if current spot has dirt in it, then stay
+					- else, go to the closest (BFS) cell of 'X' (not visited yet and is not a wall)
+7. recharges until full battery when back to docking station
+8. preference order of steps (left to right): east, west, south, north, stay
 */
 
-class _313178576_A : public AbstractAlgorithm
+class _313178576_A : public SuperAlgorithm
 {
 private:
-	const AbstractSensor* sensor;
-	//list<const AbstractSensor*> sensors;
-	int moreSteps = -1; // set to unknown until alret from 'aboutToFinish'
-	int batteryCapacity;
-	int curBattery;
-	int batteryConsumptionRate;
-	int batteryRechargeRate;
-	bool ending = false;
-	list<Direction> path; // remember path in order to return to docking station
-	int distanceToDocking = 0;
-	// note that the algorithm does not have an access to the house (only its sensor).
+	Direction lastMove = Direction::Stay; // remember last move (that is different than Stay)
+	bool returning = false; // true <-> on the way to the docking station
+	bool recharging = false; // true <-> need to recharge battery before cleaning again
+	bool goingX = false; // true <-> on the way to a new place with 'X'
+	list<Direction> wayHome; // after calling goHome -> it is updated and holds tha shortest path to the docking station
+	list<Direction> xPath; // used for going to the closest x in the shortest number of steps
+	bool end = false; // when cleaned the whole house
 public:
+	// block improperly handled constructors
 	_313178576_A() {};
 	_313178576_A(const _313178576_A&) = delete;
 	_313178576_A& operator=(const _313178576_A&) = delete;
 	// set new sensor -> algorithm knows: starting to work on a new house
 	virtual void setSensor(const AbstractSensor& s) override;
-	virtual void setConfiguration(map<string, int> config) override;
 	virtual Direction step(Direction prevStep) override;
-	virtual void aboutToFinish(int stepsTillFinishing) override;
-
 private:
-	bool shouldReturnDocking();
-	bool isOppositeMove(Direction d1, Direction d2);
-	Direction oppositeMove(Direction d);
+	bool goHome();
+	bool goClean();
 };
-
-#endif // __ALGORITHM_A_H

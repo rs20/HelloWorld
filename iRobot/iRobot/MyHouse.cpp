@@ -8,19 +8,19 @@ void MyHouse::resetHouse()
 	house = { { docking, 'D' } };
 }
 
-// return shortest path (list) from robot to the closest cell with char type
+// return shortest path (list) from cell 'start' to the closest cell with char type and the last cell itself
 // when type=='D' -> return shortest path to the docking station
 // returns empty list when not found (for example: cleaned the whole house -> no 'X' would be found)
 // FOR ALGORITHM 1: (may change it)
 //	when type == 'X', BFS will match type to '1'-'9' + 'X'
-std::list<Direction> MyHouse::BFS(char type)
+std::list<Direction> MyHouse::BFS(Cell start, char type)
 {
 	// the queue is pairs of <list of directions from start (robot), last Cell in track>
 	std::queue<std::pair<std::list<Direction>, Cell>> q;
-	std::list<Direction> start;
-	q.push({ start, robot });
+	std::list<Direction> emptyPath;
+	q.push({ emptyPath, start });
 	std::set<Cell> visited;
-	visited.insert(robot);
+	visited.insert(start);
 	while (q.size() > 0) {
 		std::list<Direction> list = q.front().first;
 		Cell cell = q.front().second;
@@ -35,11 +35,15 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::East);
 			if (type == 'X') {
 				char t = getCell(east);
-				if (((t > '0') && (t <= '9')) || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X') {
+					//end = east;
 					return newList;
+				}
 			}
-			else if (getCell(east) == type)
+			else if (getCell(east) == type) {
+				//end = east;
 				return newList;
+			}
 			q.push({ newList, east });
 			visited.insert(east);
 		}
@@ -48,11 +52,15 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::West);
 			if (type == 'X') {
 				char t = getCell(west);
-				if (((t > '0') && (t <= '9')) || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X') {
+					//end = west;
 					return newList;
+				}
 			}
-			else if (getCell(west) == type)
+			else if (getCell(west) == type) {
+				//end = west;
 				return newList;
+			}
 			q.push({ newList, west });
 			visited.insert(west);
 		}
@@ -61,11 +69,15 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::South);
 			if (type == 'X') {
 				char t = getCell(south);
-				if (((t > '0') && (t <= '9')) || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X') {
+					//end = south;
 					return newList;
+				}
 			}
-			else if (getCell(south) == type)
+			else if (getCell(south) == type) {
+				//end = south;
 				return newList;
+			}
 			q.push({ newList, south });
 			visited.insert(south);
 		}
@@ -74,16 +86,21 @@ std::list<Direction> MyHouse::BFS(char type)
 			newList.push_back(Direction::North);
 			if (type == 'X') {
 				char t = getCell(north);
-				if (((t > '0') && (t <= '9')) || t == 'X')
+				if (((t > '0') && (t <= '9')) || t == 'X') {
+					//end = north;
 					return newList;
+				}
 			}
-			else if (getCell(north) == type)
+			else if (getCell(north) == type) {
+				//end = north;
 				return newList;
+			}
 			q.push({ newList, north });
 			visited.insert(north);
 		}
 	}
-	return start; // return empty list when no char type found
+	//end = start;
+	return emptyPath; // return empty list when no char type found
 }
 
 void MyHouse::updateRobot(Direction direction)

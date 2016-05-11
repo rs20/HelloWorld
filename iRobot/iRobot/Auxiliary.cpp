@@ -70,6 +70,9 @@ int handleConfigFile(std::string configPath, std::map<std::string, int> &config)
 	if (myfile.is_open()) {
 		while (getline(myfile, line)) {
 			std::vector<std::string> tokens = split(line, '=');
+			// TODO: make sure it always works
+			// I (ron) added this -> handle carraige return (13 ascii code) - 'new line'
+			tokens[1].erase(std::remove(tokens[1].begin(), tokens[1].end(), '\r'), tokens[1].end());
 			if (tokens.size() != 2)
 				continue;
 			if (tokens[1].empty() || (!isdigit((tokens[1])[0]))) // if the string doesn't represent a number, define the number to be -1;

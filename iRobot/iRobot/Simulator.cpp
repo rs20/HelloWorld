@@ -272,13 +272,13 @@ void Simulator::startSimulation()
 		
 		// score the algorithms on the house
 		// if none won -> winner num steps = simulation num steps
-		// TODO: call the right score method (Score.h or calc_score from the loaded score_formula.so)
-		// (call calc_score if score_loaded==true (field in Simulator.h) and call the score method in Score.h when it's false
+		// call the right score method (Score.h or calc_score from the loaded score_formula.so)
+		// (call calc_score if score_loaded==true (field in Simulator.h) and call the score method in Score.h when it's false)
 
 		if (winner_num_steps == -1)
 			winner_num_steps = simulation_num_steps;
 		for (int l = 0; l < numOfAlgorithms; l++) {
-			is_back_in_docking = (curHouses[l].robot.row == curHouses[l].docking.row && curHouses[l].robot.col == curHouses[l].docking.col) ? true : false;
+			is_back_in_docking = (curHouses[l].robot == curHouses[l].docking) ? true : false;
 			if (into_wall[l] == true) // if walked into a wall, score=0
 				scores[k][l] = 0;
 			else
@@ -290,7 +290,7 @@ void Simulator::startSimulation()
 				score_params["dirt_collected"] = curHouses[l].initialSumOfDirt - curHouses[l].sumOfDirt;
 				score_params["is_back_in_docking"] = is_back_in_docking;
 
-				if (curHouses[k].sumOfDirt == 0 && is_back_in_docking)
+				if (curHouses[l].sumOfDirt == 0 && is_back_in_docking)
 				{
 					score_params["actual_position_in_competition"] = positionInComp[l];
 				}
@@ -465,8 +465,6 @@ int Simulator::handleConfiguration()
 	return 0;
 }
 
-// TODO: dynamic load the score .so
-// TODO: handle errors
 int Simulator::handleScore()
 {
 	if (!score_loaded)
