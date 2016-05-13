@@ -13,6 +13,12 @@
 #include <errno.h>
 #include <limits.h>
 
+#include <thread>
+#include <atomic>
+//#include <mutex>
+// we did not use a mutex at all, only atomic integers. the threads work on the same vectors/arrays ...
+// but at each time, access a different index (the index of the house they currently work on) in the vector/array
+
 // linux includes
 #include <dirent.h>
 #include <sys/stat.h>
@@ -65,18 +71,17 @@
 #define NO_MORE_MOVES "Time's up! No more moves."
 #define INTO_WALL "Robot walked into a wall! Game Over."
 
-
-std::string handleSlash(const char* path);
-int handleConfigFile(std::string configPath, std::map<std::string, int>& config);
-std::wstring stringToWstring(const std::string& s);
-int handleScoreFile(std::string scorePath, void* hndl, int(**score_function)(const map<string, int>& score_params));
-int handleHouseFiles(std::string housePath, int numOfHouses, House* houses);
-int getNumberOfHouses(std::string housePath);
-int getNumberOfPotentialAlgorithms(std::string algorithmPath);
-int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, AlgorithmRegistrar& algorithms);
-void printHouseWithRobot(House& house);
-void freeHouses(House *houses, int numOfHouses);
-void copyHouse(House& dst, House& src);
-
 std::vector<std::string> split(const std::string &s, char delimiter);
 std::string trim(std::string& str);
+std::string handleSlash(const char* path);
+std::wstring stringToWstring(const std::string& s);
+
+int handleConfigFile(std::string configPath, std::map<std::string, int>& config);
+int handleScoreFile(std::string scorePath, void* hndl, int(**score_function)(const map<string, int>& score_params));
+int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames);
+int readHouseFile(int houseIndex, string houseFileName, string* houseErrors, House* house);
+int getNumberOfPotentialAlgorithms(std::string algorithmPath);
+int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, AlgorithmRegistrar& algorithms);
+
+void printHouseWithRobot(House& house);
+void copyHouse(House& dst, House* house);

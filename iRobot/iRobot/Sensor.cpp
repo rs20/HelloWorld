@@ -1,5 +1,3 @@
-//#include "stdafx.h"
-
 #include "Sensor.h"
 
 Sensor::Sensor(House *h) {

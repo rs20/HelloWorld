@@ -4,7 +4,7 @@
 src = Sensor.cpp Simulator.cpp Auxiliary.cpp AlgorithmRegistrar.cpp AlgorithmRegistration.cpp MyHouse.cpp SuperAlgorithm.cpp
 obj = $(src:.cpp=.o)
 
-CXXFLAGS = -std=c++11 -g -ldl -rdynamic -Wall -O2 -pedantic
+CXXFLAGS = -std=c++11 -g -ldl -rdynamic -Wall -O2 -pedantic -lpthread
 
 # may add boost libraries here
 LD_FLAGS = -lm

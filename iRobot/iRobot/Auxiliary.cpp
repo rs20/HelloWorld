@@ -1,5 +1,3 @@
-//#include "stdafx.h"
-
 #include "Auxiliary.h"
 #include <stdlib.h>
 #include <string>
@@ -232,222 +230,139 @@ int handleScoreFile(std::string scorePath, void* hndl, int (**score_function)(co
 	return 0;
 }
 
-// we call this method after checking in getNumberOfHouses that housePath exists (as a directory) and contains > 0 houses
-// return 0 for ok / -1 for error + should print usage / -2 for error + return
-int handleHouseFiles(std::string housePath, int numOfHouses, House* houses)
+// reads houseFileName file to house object + update houseErrors / isValidHouses when necessary
+// return 0 for ok
+// return -1 for error
+int readHouseFile(int houseIndex, string houseFileName, string* houseErrors, House* house)
 {
-	//std::string* fileNames = new std::string[numOfHouses];
-	//unique_ptr<string[]> fileNames = make_unique<string[]>(numOfHouses);
-	vector<string> fileNames;
-	// linux code
-	DIR *pDIR;
-	struct stat st;
-	if (!(housePath.empty())) {
-		if (stat(housePath.c_str(), &st) == -1) // error (we know the directory exists)
-		{
+	int numOfDockingStations = 0;
+	std::ifstream myfile(houseFileName.c_str());
+	std::string line;
+	house->houseFileName = houseFileName;
+	if (myfile.is_open()) {
+		getline(myfile, line);
+		house->houseDescription = line;
+		getline(myfile, line);
+		if (atoi(line.c_str()) < 0) {
+			houseErrors[houseIndex] = "line number 2 in house file shall be a positive number, found: " + line;
 			return -1;
 		}
-	}
-	struct dirent *entry;
-	std::string temp = "";
-	//int i = 0;
-	if ((pDIR = opendir(housePath.empty() ? "." : housePath.c_str())))
-	{
-		while ((entry = readdir(pDIR)))
+		house->maxSteps = atoi(line.c_str());
+		getline(myfile, line);
+		if (atoi(line.c_str()) <= 0) {
+			houseErrors[houseIndex] = "line number 3 in house file shall be a positive number, found: " + line;
+			return -1;
+		}
+		house->rows = atoi(line.c_str());
+		getline(myfile, line);
+		if (atoi(line.c_str()) <= 0) {
+			houseErrors[houseIndex] = "line number 4 in house file shall be a positive number, found: " + line;
+			return -1;
+		}
+		house->cols = atoi(line.c_str());
+
+		house->initialSumOfDirt = 0;
+
+		// initialize empty matrix of spaces of size rows X cols
+		house->matrix = make_unique<unique_ptr<char[]>[]>(house->rows);
+		for (int i = 0; i < house->rows; i++) {
+			house->matrix[i] = make_unique<char[]>(house->cols);
+			for (int j = 0; j < house->cols; j++)
+				house->matrix[i][j] = ' ';
+		}
+
+		// start reading the house matrix
+		getline(myfile, line);
+		for (int i = 0; i < house->rows && myfile; i++)
 		{
-			if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
+			for (int j = 0; j < house->cols && j < ((int)line.length()); j++)
 			{
-				if (strlen(entry->d_name) > 6) // name of file is "X.house" so it should be > 6 
-				{
-					temp = entry->d_name;
-					temp = temp.substr(strlen(entry->d_name) - 6, strlen(entry->d_name) - 1);
-					if (!strcmp(temp.c_str(), ".house"))
-					{
-						fileNames.push_back(entry->d_name);
-						//fileNames[i] =  entry->d_name;
-						//i++;
-					}
+				house->matrix[i][j] = line[j];
+				// found robot's starting point == docking station
+				if (line[j] == 'D') {
+					numOfDockingStations++;
+					house->robot = { i, j };
+					house->docking = { i, j };
 				}
+				// treat any unrecognized character as ' '
+				else if (line[j] != 'W' && line[j] != ' ' && (line[j] < '0' || line[j] > '9'))
+					house->matrix[i][j] = ' ';
 
+				if (line[j] >= '1' && line[j] <= '9')
+					house->initialSumOfDirt += (line[j] - '0');
+			}
+			getline(myfile, line);
+		}
+		if (numOfDockingStations == 0)
+		{
+			houseErrors[houseIndex] = ERROR_NO_DOCKING_STATIONS;
+			return -1;
+		}
+
+		// reaches here if there is at least one docking station
+		// filling the house walls
+		// fill most left and most right sides with walls
+		for (int i = 0; i < house->rows; i++)
+		{
+			if (house->matrix[i][0] == 'D') {
+				numOfDockingStations--;
+			}
+			house->matrix[i][0] = 'W';
+			if (house->matrix[i][house->cols - 1] == 'D') {
+				numOfDockingStations--;
+			}
+			house->matrix[i][house->cols - 1] = 'W';
+		}
+		// fill most up and most down sides with walls
+		for (int j = 0; j < house->cols; j++)
+		{
+			if (house->matrix[0][j] == 'D') {
+				numOfDockingStations--;
+			}
+			house->matrix[0][j] = 'W';
+			if (house->matrix[house->rows - 1][j] == 'D') {
+				numOfDockingStations--;
+			}
+			house->matrix[house->rows - 1][j] = 'W';
+		}
+
+		// check if number of dokcing stations is different than 1
+		if (numOfDockingStations == 0) {
+			houseErrors[houseIndex] = ERROR_NO_DOCKING_STATIONS;
+			return -1;
+		}
+		else if (numOfDockingStations > 1) {
+			houseErrors[houseIndex] = ERROR_TOO_MANY_DOCKING_STATIONS;
+			return -1;
+		}
+
+		// once again, find the new docking station
+		for (int i = 0; i < house->rows; i++) {
+			for (int j = 0; j < house->cols; j++) {
+				if (house->matrix[i][j] == 'D') {
+					house->robot = { i, j };
+					house->docking = { i, j };
+				}
 			}
 		}
-		closedir(pDIR);
-	}
-	else
-	{
-		// no need to delete when working with smart pointers
-		//delete[] fileNames;
-		return -1;
-	}
-	//sort(fileNames, fileNames + numOfHouses);
-	sort(fileNames.begin(), fileNames.end());
-	for (int k = 0; k < numOfHouses; k++)
-	{
-		int numOfDockingStations = 0;
-		houses[k].isValidHouse = true;
-		std::string fullFileName = housePath + fileNames[k];
-		houses[k].houseFileName = fullFileName;
-		std::ifstream myfile(fullFileName.c_str());
-		std::string line;
 
-		houses[k].ifToFree = false;
-		if (myfile.is_open()) {
-			getline(myfile, line);
-			houses[k].houseDescription = line;
-			getline(myfile, line);
-			if (atoi(line.c_str()) < 0) {
-				houses[k].isValidHouse = false;
-				houses[k].error = "line number 2 in house file shall be a positive number, found: " + line;
-				continue;
-			}
-			houses[k].maxSteps = atoi(line.c_str());
-			getline(myfile, line);
-			if (atoi(line.c_str()) <= 0) {
-				houses[k].isValidHouse = false;
-				houses[k].error = "line number 3 in house file shall be a positive number, found: " + line;
-				continue;
-			}
-			houses[k].rows = atoi(line.c_str());
-			getline(myfile, line);
-			if (atoi(line.c_str()) <= 0) {
-				houses[k].isValidHouse = false;
-				houses[k].error = "line number 4 in house file shall be a positive number, found: " + line;
-				continue;
-			}
-			houses[k].cols = atoi(line.c_str());
-
-			houses[k].initialSumOfDirt = 0;
-
-			// initialize empty matrix of spaces of size rows X cols
-			//houses[k].matrix = new char*[houses[k].rows];
-			houses[k].matrix = make_unique<unique_ptr<char[]>[]>(houses[k].rows);
-			for (int i = 0; i < houses[k].rows; i++) {
-				//houses[k].matrix[i] = new char[houses[k].cols];
-				houses[k].matrix[i] = make_unique<char[]>(houses[k].cols);
-				for (int j = 0; j < houses[k].cols; j++)
-					houses[k].matrix[i][j] = ' ';
-			}
-			houses[k].ifToFree = true;
-
-			// start reading the house matrix
-			getline(myfile, line);
-			for (int i = 0; i < houses[k].rows && myfile; i++)
-			{
-				for (int j = 0; j < houses[k].cols && j < ((int)line.length()); j++)
-				{
-					houses[k].matrix[i][j] = line[j];
-					// found robot's starting point == docking station
-					if (line[j] == 'D') {
-						numOfDockingStations++;
-						houses[k].robot = { i, j };
-						houses[k].docking = { i, j };
-					}
-					// treat any unrecognized character as ' '
-					else if (line[j] != 'W' && line[j] != ' ' && (line[j] < '0' || line[j] > '9'))
-						houses[k].matrix[i][j] = ' ';
-
-					if (line[j] >= '1' && line[j] <= '9')
-						houses[k].initialSumOfDirt += (line[j] - '0');
-				}
-				getline(myfile, line);
-			}
-			if (numOfDockingStations == 0)
-			{
-				houses[k].isValidHouse = false;
-				houses[k].error = ERROR_NO_DOCKING_STATIONS;
-				continue;
-			}
-
-			// reaches here if there is at least one docking station
-			// filling the house walls
-			// fill most left and most right sides with walls
-			for (int i = 0; i < houses[k].rows; i++)
-			{
-				if (houses[k].matrix[i][0] == 'D') {
-					numOfDockingStations--;
-				}
-				houses[k].matrix[i][0] = 'W';
-				if (houses[k].matrix[i][houses[k].cols - 1] == 'D') {
-					numOfDockingStations--;
-				}
-				houses[k].matrix[i][houses[k].cols -1] = 'W';
-			}
-			// fill most up and most down sides with walls
-			for (int j = 0; j < houses[k].cols; j++)
-			{
-				if (houses[k].matrix[0][j] == 'D') {
-					numOfDockingStations--;
-				}
-				houses[k].matrix[0][j] = 'W';
-				if (houses[k].matrix[houses[k].rows - 1][j] == 'D') {
-					numOfDockingStations--;
-				}
-				houses[k].matrix[houses[k].rows - 1][j] = 'W';
-			}
-
-			// check if number of dokcing stations is different than 1
-			if (numOfDockingStations == 0) {
-				houses[k].isValidHouse = false;
-				houses[k].error = ERROR_NO_DOCKING_STATIONS;
-				continue;
-			}
-			else if (numOfDockingStations > 1) {
-				houses[k].isValidHouse = false;
-				houses[k].error = ERROR_TOO_MANY_DOCKING_STATIONS;
-				continue;
-			}
-
-			// once again, find the new docking station
-			for (int i = 0; i < houses[k].rows; i++) {
-				for (int j = 0; j < houses[k].cols; j++) {
-					if (houses[k].matrix[i][j] == 'D') {
-						houses[k].robot = { i, j };
-						houses[k].docking = { i, j };
-					}
-				}
-			}
-
-			houses[k].sumOfDirt = houses[k].initialSumOfDirt;
-			myfile.close();
-		}
-		else {
-			houses[k].isValidHouse = false;
-			houses[k].error = ERROR_OPEN_HOUSE_FILE;
-		}
-	}
-
-	bool allMalformed = true;
-	for (int i = 0; i < numOfHouses; i++) {
-		if (houses[i].isValidHouse == true)
-			allMalformed = false;
-	}
-	if (!allMalformed) {
-		// no need to free with smart pointers
-		//delete[] fileNames;
+		house->sumOfDirt = house->initialSumOfDirt;
+		myfile.close();
+		// house is ok
 		return 0;
 	}
-
-	// linux code
-	string fpath = housePath.empty()? "." : housePath;
-	char* rpath = realpath(fpath.c_str(), NULL);
-	if (rpath != NULL)
-		fpath = string(rpath);
-	std::cout << "All house files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
-	for (int i = 0; i < numOfHouses; i++) {
-		std::cout << houses[i].houseFileName << ": " << houses[i].error << std::endl;
+	else {
+		houseErrors[houseIndex] = ERROR_OPEN_HOUSE_FILE;
+		return -1;
 	}
-	// no need to free with smart pointers
-	//delete[] fileNames;
-
-	return -2;
 }
 
 
-// returns number of house files in housePath directory
+// returns number of house files in housePath directory + fills houseFileNames vector with absolute (full) house file names (sorted)
 // return -2 if directory does not exist
 // return -1 if exists but defected / error occured
 // return 0 if exists but no houses inside
-int getNumberOfHouses(std::string housePath)
+int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames)
 {
 	int numOfHouses = 0;
 	// linux code
@@ -480,6 +395,8 @@ int getNumberOfHouses(std::string housePath)
 					if (!strcmp(temp.c_str(), ".house"))
 					{
 						numOfHouses++;
+						std::string fullFileName = housePath + entry->d_name;
+						houseFileNames.push_back(fullFileName);
 					}
 				}
 
@@ -491,6 +408,8 @@ int getNumberOfHouses(std::string housePath)
 	{
 		return -1; // error
 	}
+	// sort by lexical order
+	sort(houseFileNames.begin(), houseFileNames.end());
 	return numOfHouses;
 }
 
@@ -500,8 +419,6 @@ int getNumberOfHouses(std::string housePath)
 int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, AlgorithmRegistrar& algorithms)
 {
 	int i=0;
-	//std::string* fileNames = new std::string[numOfPotentialAlgorithms];
-	//unique_ptr<string[]> fileNames = make_unique<string[]>(numOfPotentialAlgorithms);
 	vector<string> fileNames;
 	bool anyValidAlgorithm = false;
 	// linux code
@@ -528,8 +445,6 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 					temp = temp.substr(strlen(entry->d_name) - 3, strlen(entry->d_name) - 1);
 					if (!strcmp(temp.c_str(), ".so"))
 					{
-						//fileNames[i] = entry->d_name;
-						//i++;
 						// do not load 'score_formula.so'
 						if (strcmp(temp_name.c_str(), "score_formula")) {
 							fileNames.push_back(entry->d_name);
@@ -543,12 +458,9 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 	}
 	else
 	{
-		// no need to delete when working with smart pointers
-		// delete[] fileNames;
 		return -1;
 	}
 	// sort the algorithms lexicographically
-	//sort(fileNames, fileNames + numOfPotentialAlgorithms);
 	sort(fileNames.begin(), fileNames.end());
 	for (i = 0; i < numOfPotentialAlgorithms; i++)
 	{
@@ -566,8 +478,6 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 		else
 			anyValidAlgorithm = true;
 	}
-	// no need of delete when working with smart pointers
-	//delete[] fileNames;
 
 	if (anyValidAlgorithm)
 	{
@@ -643,23 +553,6 @@ int getNumberOfPotentialAlgorithms(std::string algorithmPath)
 	return numOfAlgorithms;
 }
 
-/*
-void printHouseWithRobot(House& house)
-{
-	if (house.matrix != NULL) {
-		for (int i = 0; i < house.rows; i++) {
-			for (int j = 0; j < house.cols; j++) {
-				if (i == house.robot.row && j == house.robot.col)
-					std::cout << 'R' << "";
-				else
-					std::cout << house.matrix[i][j] << "";
-			}
-			std::cout << std::endl;
-		}
-	}
-}
-*/
-
 // just for debugging
 // print size according to number of rows
 void printHouseWithRobot(House& house)
@@ -680,38 +573,20 @@ void printHouseWithRobot(House& house)
 	}
 }
 
-void copyHouse(House& dst, House& src)
+void copyHouse(House& dst, House* src)
 {
-	dst.houseFileName = src.houseFileName;
-	dst.houseDescription = src.houseDescription;
-	dst.rows = src.rows;
-	dst.cols = src.cols;
-	//dst.matrix = new char*[src.rows];
-	dst.matrix = make_unique<unique_ptr<char[]>[]>(src.rows);
-	for (int i = 0; i < src.rows; i++) {
-		//dst.matrix[i] = new char[src.cols];
-		dst.matrix[i] = make_unique<char[]>(src.cols);
-		for (int j = 0; j < src.cols; j++)
-			dst.matrix[i][j] = src.matrix[i][j];
+	dst.houseFileName = src->houseFileName;
+	dst.houseDescription = src->houseDescription;
+	dst.rows = src->rows;
+	dst.cols = src->cols;
+	dst.matrix = make_unique<unique_ptr<char[]>[]>(src->rows);
+	for (int i = 0; i < src->rows; i++) {
+		dst.matrix[i] = make_unique<char[]>(src->cols);
+		for (int j = 0; j < src->cols; j++)
+			dst.matrix[i][j] = src->matrix[i][j];
 	}
-	dst.robot = src.robot;
-	dst.docking = src.docking;
-	dst.initialSumOfDirt = src.initialSumOfDirt;
-	dst.sumOfDirt = src.sumOfDirt;
+	dst.robot = src->robot;
+	dst.docking = src->docking;
+	dst.initialSumOfDirt = src->initialSumOfDirt;
+	dst.sumOfDirt = src->sumOfDirt;
 }
-
-/*
-// no need when working with smart pointers
-void freeHouses(House* houses, int numOfHouses)
-{
-	// free houses
-	for (int k = 0; k < numOfHouses; k++) {
-		if (houses[k].ifToFree) {
-			for (int i = 0; i < houses[k].rows; i++)
-				delete[] houses[k].matrix[i];
-			delete[] houses[k].matrix;
-		}
-	}
-	delete[] houses;
-}
-*/
