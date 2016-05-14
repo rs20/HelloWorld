@@ -103,6 +103,56 @@ std::list<Direction> MyHouse::BFS(Cell start, Cell &end, char type)
 	return emptyPath; // return empty list when no char type found
 }
 
+
+/*
+1st try -> not successfull
+
+std::list<Direction> MyHouse::IDDFS(Cell start, Cell &end, int depth)
+{
+	std::list<Direction> path;
+	std::set<Cell> visited;
+	for (int dep = depth; dep > 0; dep--) {
+		bool found = DLS(path, visited, start, end, depth);
+		if (found)
+			return path;
+		path.clear();
+	}
+	return path; // empty path
+}
+
+bool MyHouse::DLS(std::list<Direction> &path, std::set<Cell> visited, Cell cur, Cell &end, int depth)
+{
+	if ((depth == 0) && hasCell(cur) && ((getCell(cur) == 'X') || ((getCell(cur) > '0') && (getCell(cur) < '9')))) {
+		end = cur;
+		return true;
+	}
+	else if (depth > 0) {
+		visited.insert(cur);
+		Cell east = { cur.row, cur.col + 1 };
+		if ((visited.count(east) == 0) && hasCell(east) && (getCell(east) != 'W') && DLS(path, visited, east, end, depth - 1)) {
+			path.push_front(Direction::East);
+			return true;
+		}
+		Cell west = { cur.row, cur.col - 1 };
+		if ((visited.count(west) == 0) && hasCell(west) && (getCell(west) != 'W') && DLS(path, visited, west, end, depth - 1)) {
+			path.push_front(Direction::West);
+			return true;
+		}
+		Cell south = { cur.row + 1, cur.col };
+		if ((visited.count(south) == 0) && hasCell(south) && (getCell(south) != 'W') && DLS(path, visited, south, end, depth - 1)) {
+			path.push_front(Direction::South);
+			return true;
+		}
+		Cell north = { cur.row - 1, cur.col };
+		if ((visited.count(north) == 0) && hasCell(north) && (getCell(north) != 'W') && DLS(path, visited, north, end, depth - 1)) {
+			path.push_front(Direction::North);
+			return true;
+		}
+	}
+	return false;
+}
+*/
+
 void MyHouse::updateRobot(Direction direction)
 {
 	if (direction == Direction::East)

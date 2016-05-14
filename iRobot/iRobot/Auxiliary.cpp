@@ -359,7 +359,6 @@ int readHouseFile(int houseIndex, string houseFileName, string* houseErrors, Hou
 
 
 // returns number of house files in housePath directory + fills houseFileNames vector with absolute (full) house file names (sorted)
-// return -2 if directory does not exist
 // return -1 if exists but defected / error occured
 // return 0 if exists but no houses inside
 int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames)
@@ -372,7 +371,8 @@ int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames)
 		if (stat(housePath.c_str(), &st) == -1) // DIR doesn't exist or error
 		{
 			if (errno == ENOENT) { // does not exists
-				return -2;
+				//return -2;
+				return -1;
 			}
 			else { // error opening
 				return -1;

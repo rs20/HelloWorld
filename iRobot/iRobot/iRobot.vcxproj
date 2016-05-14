@@ -146,6 +146,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="313178576_B_.h" />
+    <ClInclude Include="313178576_C_.h" />
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
     <ClInclude Include="AlgorithmRegistrar.h" />
@@ -153,6 +155,7 @@
     <ClInclude Include="Auxiliary.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Direction.h" />
+    <ClInclude Include="HashCell.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="MakeUnique.h" />
     <ClInclude Include="MyHouse.h" />
@@ -167,6 +170,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="313178576_B_.cpp" />
+    <ClCompile Include="313178576_C_.cpp" />
     <ClCompile Include="AlgorithmRegistrar.cpp" />
     <ClCompile Include="AlgorithmRegistration.cpp" />
     <ClCompile Include="Auxiliary.cpp" />

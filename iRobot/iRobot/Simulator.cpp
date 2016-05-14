@@ -298,8 +298,8 @@ void Simulator::runThreadOnHouse(int houseIndex)
 	while (true) {
 		simulation_num_steps++;
 		if (SHOW_SIMULATION_HOUSES) {
-			cout << "Step " << simulation_num_steps << endl;
 			getchar();
+			cout << "Step " << simulation_num_steps << endl;
 		}
 		// simulate one step for each algorithm
 		int algIndex = -1;
@@ -314,11 +314,8 @@ void Simulator::runThreadOnHouse(int houseIndex)
 			// pass last move of the algorithm and update the new one
 			Direction direction = algorithm->step(lastMoves[algIndex]);
 			lastMoves[algIndex] = direction;
-			//cleaning dust if there is any.
-			if (curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] > '0' && curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] <= '9') {
-				curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] = curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] - 1;
-				curHouses[algIndex].sumOfDirt--;
-			}
+
+			// if leaving docking station -> load battery
 			if (curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] == 'D') {
 				curBattery[algIndex] = MIN(batteryCapacity, curBattery[algIndex] + batteryRechargeRate);
 			}
@@ -327,6 +324,7 @@ void Simulator::runThreadOnHouse(int houseIndex)
 			if (curHouses[algIndex].robot != curHouses[algIndex].docking)
 				curBattery[algIndex] -= batteryConsumptionRate;
 
+			// make the step on the current house of the algorithm
 			switch (direction)
 			{
 			case static_cast<Direction>(0) :
@@ -344,6 +342,12 @@ void Simulator::runThreadOnHouse(int houseIndex)
 			default:
 				break;
 				// do nothing for 'Stay'
+			}
+
+			//cleaning dust when entering a cell
+			if (curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] > '0' && curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] <= '9') {
+				curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] = curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] - 1;
+				curHouses[algIndex].sumOfDirt--;
 			}
 
 			// walked into a wall -> stop the algorithm from running. its score will be zero
