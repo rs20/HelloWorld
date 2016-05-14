@@ -359,7 +359,8 @@ int readHouseFile(int houseIndex, string houseFileName, string* houseErrors, Hou
 
 
 // returns number of house files in housePath directory + fills houseFileNames vector with absolute (full) house file names (sorted)
-// return -1 if exists but defected / error occured
+// ******* does not return -2 any longer because we don't want to search recursively ********
+// return -1 if does not exist / defected / error occured
 // return 0 if exists but no houses inside
 int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames)
 {
@@ -415,7 +416,7 @@ int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames)
 
 
 // we call this method after checking in getNumberOfPotentialAlgorithms that algorithmPath exists (as a directory) and contains > 0 algorithms
-// return 0 for ok / -1 for error + should print usage / -2 for error + return
+// return 0 for ok / -1 for error + should print usage / -2 for error + return (no print usage)
 int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms, AlgorithmRegistrar& algorithms)
 {
 	int i=0;

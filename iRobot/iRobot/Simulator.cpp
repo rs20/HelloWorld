@@ -106,25 +106,12 @@ int Simulator::handleAlgorithms()
 	numOfAlgorithms = getNumberOfPotentialAlgorithms(flags[3]);
 	if (numOfAlgorithms == -1 || numOfAlgorithms == 0) {
 		cout << USAGE << endl;
-		cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl;
+		cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl; // TODO: print here full path (we forgot in ex2)
 		return -1;
 	}
-	if (numOfAlgorithms == -2) { // search recursive in the working directory
-		if (flags[3].empty()) { // already searched in there.. -> return
-			cout << USAGE << endl;
-			cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl;
-			return -1;
-		}
-		numOfAlgorithms = getNumberOfPotentialAlgorithms(""); // search in the working directory
-		if (numOfAlgorithms <= 0) {
-			cout << USAGE << endl;
-			cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl;
-			return -1;
-		}
-		else {
-			// update flags[3] to the working directory -> it contains algorithms that should be loaded
-			flags[3] = "";
-		}
+	else if (numOfAlgorithms == -2) {
+		// no usage print is necessary
+		return -1;
 	}
 	handle = handleAlgorithmFiles(handleSlash(flags[3].c_str()), numOfAlgorithms, registrar);
 	if (handle < 0) {
@@ -150,23 +137,6 @@ int Simulator::handleHouses()
 		cout << USAGE << endl;
 		cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
 		return -1;
-	}
-	if (numOfHouses == -2) { // search recursive in the working directory
-		if (flags[2].empty()) { // already searched in there.. -> return
-			cout << USAGE << endl;
-			cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
-			return -1;
-		}
-		numOfHouses = getNumberOfHouses("", houseFileNames); // search in the working directory
-		if (numOfHouses <= 0) {
-			cout << USAGE << endl;
-			cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
-			return -1;
-		}
-		else {
-			// update flags[1] to the working directory -> it contains the houses that should be read
-			flags[2] = "";
-		}
 	}
 	isValidHouses = make_unique<bool[]>(numOfHouses);
 	houseErrors = make_unique<string[]>(numOfHouses);
