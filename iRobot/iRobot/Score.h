@@ -12,6 +12,24 @@ int score(const map<string, int>& score_params)
 	int sum_dirt_in_house = score_params.at("sum_dirt_in_house");
 	int dirt_collected = score_params.at("dirt_collected");
 	int is_back_in_docking = score_params.at("is_back_in_docking");
+
+	if (winner_num_steps == 0 && this_num_steps == 0)
+	{
+		return MAX_SCORE;
+	}
+
+	if (is_back_in_docking && sum_dirt_in_house == dirt_collected)
+	{
+		if (position_in_competition > 4)
+		{
+			position_in_competition = 4;
+		}
+	}
+	else
+	{
+		position_in_competition = 10;
+	}
+
 	return MAX(0, 2000
 		- 50 * (position_in_competition - 1)
 		+ 10 * (winner_num_steps - this_num_steps)

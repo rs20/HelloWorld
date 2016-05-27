@@ -410,7 +410,8 @@ int getNumberOfHouses(std::string housePath, vector<string>& houseFileNames)
 		return -1; // error
 	}
 	// sort by lexical order
-	sort(houseFileNames.begin(), houseFileNames.end());
+	if (numOfHouses>1)
+		sort(houseFileNames.begin(), houseFileNames.end());
 	return numOfHouses;
 }
 
@@ -486,10 +487,7 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfPotentialAlgorithms
 	}
 	else
 	{
-		string fpath = algorithmPath.empty()? "." : algorithmPath;
-		char* rpath = realpath(fpath.c_str(), NULL);
-		if (rpath != NULL)
-			fpath = string(rpath);
+		string fpath = fullPath(algorithmPath);
 		std::cout << "All algorithm files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
 		std::list<std::string> errors = algorithms.getErrorsList();
 		for (std::list<std::string>::iterator it = errors.begin(); it != errors.end(); ++it) {
@@ -590,4 +588,14 @@ void copyHouse(House& dst, House* src)
 	dst.docking = src->docking;
 	dst.initialSumOfDirt = src->initialSumOfDirt;
 	dst.sumOfDirt = src->sumOfDirt;
+}
+
+std::string fullPath(std::string relativePath)
+{
+	string fpath = relativePath.empty() ? "." : relativePath;
+	char* rpath = realpath(fpath.c_str(), NULL);
+	if (rpath != NULL)
+		fpath = string(rpath);
+	return fpath;
+
 }

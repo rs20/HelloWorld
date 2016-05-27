@@ -70,7 +70,7 @@ int Simulator::handleConfiguration()
 		if (handle == -2)
 		{
 			cout << USAGE << endl;
-			cout << ERROR_FIND_CONFIG_FILE << handleSlash((flags[0]).c_str()) << endl;
+			cout << ERROR_FIND_CONFIG_FILE << fullPath(handleSlash((flags[0]).c_str())) << endl;
 		}
 		return -1;
 	}
@@ -89,7 +89,7 @@ int Simulator::handleScore()
 	if (handle < 0) {
 		if (handle == -2) {
 			cout << USAGE << endl;
-			std::cout << ERROR_FIND_SCORE_FILE << handleSlash((flags[1]).c_str()) << std::endl;
+			std::cout << ERROR_FIND_SCORE_FILE << fullPath(handleSlash((flags[1]).c_str())) << std::endl;
 		}
 		return -1;
 	}
@@ -106,7 +106,7 @@ int Simulator::handleAlgorithms()
 	numOfAlgorithms = getNumberOfPotentialAlgorithms(flags[3]);
 	if (numOfAlgorithms == -1 || numOfAlgorithms == 0) {
 		cout << USAGE << endl;
-		cout << ERROR_FIND_ALGORITHM_FILES << flags[3] << endl; // TODO: print here full path (we forgot in ex2)
+		cout << ERROR_FIND_ALGORITHM_FILES << fullPath(flags[3]) << endl; 
 		return -1;
 	}
 	else if (numOfAlgorithms == -2) {
@@ -135,7 +135,7 @@ int Simulator::handleHouses()
 	numOfHouses = getNumberOfHouses(handleSlash((flags[2]).c_str()), houseFileNames);
 	if (numOfHouses == -1 || numOfHouses == 0) {
 		cout << USAGE << endl;
-		cout << ERROR_FIND_HOUSE_FILES << flags[2] << endl;
+		cout << ERROR_FIND_HOUSE_FILES << fullPath(flags[2]) << endl;
 		return -1;
 	}
 	isValidHouses = make_unique<bool[]>(numOfHouses);
@@ -165,14 +165,22 @@ void Simulator::startSimulation()
 	for (string algorithmName : registrar.getAlgorithmNames())
 		scores[algorithmName] = make_unique<int[]>(numOfHouses);
 	
-	// create threads and start them
-	vector<unique_ptr<thread>> threads(numOfThreads);
-	for (auto& thread_ptr : threads)
-		thread_ptr = make_unique<thread>(&Simulator::threadSimulation, this);
+	if (numOfThreads >= 1)
+	{
+		// create threads and start them
+		vector<unique_ptr<thread>> threads(numOfThreads);
+		for (auto& thread_ptr : threads)
+			thread_ptr = make_unique<thread>(&Simulator::threadSimulation, this);
+
+		// join all threads
+		for (auto& thread_ptr : threads)
+			thread_ptr->join();
+	}
+	else
+	{
+		threadSimulation();
+	}
 	
-	// join all threads
-	for (auto& thread_ptr : threads)
-		thread_ptr->join();
 
 	// print results
 	printScores();
@@ -182,7 +190,7 @@ void Simulator::startSimulation()
 void Simulator::threadSimulation()
 {
 	// assign houses to the threads (nextHouse is atomic integer)
-	for (int houseIndex = nextHouse++; houseIndex < numOfHouses; houseIndex = nextHouse++) {
+	for (int houseIndex = nextHouse.fetch_add(1, std::memory_order_relaxed); houseIndex < numOfHouses; houseIndex = nextHouse.fetch_add(1, std::memory_order_relaxed)) { 
 		runThreadOnHouse(houseIndex);
 	}
 }
@@ -202,9 +210,23 @@ void Simulator::runThreadOnHouse(int houseIndex)
 	isValidHouses[houseIndex] = true;
 	// automatic win for each algorithm if the dirt in the house == 0
 	if (house->sumOfDirt == 0) {
+		map<string, int> autoWinScore;
+		autoWinScore["simulation_steps"] = 0;
+		autoWinScore["winner_num_steps"] = 0;
+		autoWinScore["this_num_steps"] = 0;
+		autoWinScore["sum_dirt_in_house"] = 0;
+		autoWinScore["dirt_collected"] = 0;
+		autoWinScore["is_back_in_docking"] = 1;
+		autoWinScore["actual_position_in_competition"] = 1;
 		auto nameIterator = registrar.getAlgorithmNames().begin();
-		for (int i = 0; i < numOfAlgorithms; i++)
-			scores[*nameIterator][houseIndex] = MAX_SCORE;
+		for (int i = 0; i < numOfAlgorithms; i++) {
+			if (score_function != NULL) {
+				scores[*nameIterator][houseIndex] = (*score_function)(autoWinScore);
+			}
+			else {
+				scores[*nameIterator][houseIndex] = score(autoWinScore);
+			}
+		}
 		return; // that's all
 	}
 
@@ -232,6 +254,7 @@ void Simulator::runThreadOnHouse(int houseIndex)
 	int cur_position = 1;
 	int finished = 0;
 	bool already_alerted_more_steps = false;
+	int algIndex;
 	// make a copy of the current house for every algorithm and assign a sensor to it
 	unique_ptr<House[]> curHouses = make_unique<House[]>(numOfAlgorithms);
 	vector<Sensor> sensors;
@@ -272,7 +295,7 @@ void Simulator::runThreadOnHouse(int houseIndex)
 			cout << "Step " << simulation_num_steps << endl;
 		}
 		// simulate one step for each algorithm
-		int algIndex = -1;
+		algIndex = -1;
 		nameIterator = algorithmNames.begin();
 		for (auto& algorithm : algorithms) {
 			// increase for the next algorithm
@@ -379,7 +402,7 @@ void Simulator::runThreadOnHouse(int houseIndex)
 		}
 		// finished one step of each algorithm
 		if (cur_stage_winners > 0)
-			cur_position = MIN(4, cur_position + cur_stage_winners);
+			cur_position = cur_position + cur_stage_winners;
 		cur_stage_winners = 0;
 
 		// - MAX-STEPS-AFTER-WINNNER ALERT -
@@ -544,11 +567,7 @@ void Simulator::printErrors()
 {
 	// all houses are defected
 	if (numOfWorkingHouses == 0) {
-		// linux code
-		string fpath = flags[2].empty() ? "." : flags[2];
-		char* rpath = realpath(fpath.c_str(), NULL);
-		if (rpath != NULL)
-			fpath = string(rpath);
+		string fpath = fullPath(flags[2]);
 		std::cout << "All house files in target folder " << "'" << fpath << "'" << " cannot be opened or are invalid:" << std::endl;
 		for (int houseIndex = 0; houseIndex < numOfHouses; houseIndex++) {
 			std::cout << houseFileNames[houseIndex] << ": " << houseErrors[houseIndex] << std::endl;

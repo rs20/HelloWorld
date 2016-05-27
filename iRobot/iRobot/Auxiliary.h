@@ -85,3 +85,4 @@ int handleAlgorithmFiles(std::string algorithmPath, int numOfAlgorithms, Algorit
 
 void printHouseWithRobot(House& house);
 void copyHouse(House& dst, House* house);
+std::string fullPath(std::string relativePath);
