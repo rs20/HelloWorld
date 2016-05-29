@@ -1,9 +1,9 @@
-#include "313178576_B_.h"
+#include "313178576_C_.h"
 
-REGISTER_ALGORITHM(_313178576_B)
+REGISTER_ALGORITHM(_313178576_C)
 
 
-Direction _313178576_B::step(Direction prevStep)
+Direction _313178576_C::step(Direction prevStep)
 {
 	// update robot's position according to the last move that the simulator actually made with the robot
 	// as the exercise specifies, the simulator may not work always according to the algorithm's suggested move

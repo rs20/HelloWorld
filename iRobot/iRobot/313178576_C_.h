@@ -1,3 +1,5 @@
+#ifndef __ALGORITHM_C_H
+#define __ALGORITHM_C_H
 #include "SuperAlgorithm.h"
 
 /*
@@ -14,12 +16,13 @@ Smart Algorithm 2:
 8. preference order of steps (left to right): west, east, south, north, stay
 */
 
-class _313178576_B : public SuperAlgorithm
+class _313178576_C : public SuperAlgorithm
 {
 public:
 	// block improperly handled constructors
-	_313178576_B() {};
-	_313178576_B(const _313178576_B&) = delete;
-	_313178576_B& operator=(const _313178576_B&) = delete;
+	_313178576_C() {};
+	_313178576_C(const _313178576_C&) = delete;
+	_313178576_C& operator=(const _313178576_C&) = delete;
 	virtual Direction step(Direction prevStep) override;
 };
+#endif

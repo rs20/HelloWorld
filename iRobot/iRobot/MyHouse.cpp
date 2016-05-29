@@ -182,10 +182,10 @@ void MyHouse::updateRobotArea(SensorInformation si)
 	// update current cell dirt level
 	if (robot != docking) {
 		// cleans 1 amount of dirt during the current step
-		if (si.dirtLevel == 0 || si.dirtLevel == 1)
+		if (si.dirtLevel == 0)
 			updateCell(robot, ' ');
 		else
-			updateCell(robot, (si.dirtLevel - 1) + '0');
+			updateCell(robot, si.dirtLevel + '0');
 	}
 	// update around if unknown
 	Cell east = { robot.row, robot.col + 1 }, west = { robot.row, robot.col - 1 }, south = { robot.row + 1, robot.col }, north = { robot.row - 1, robot.col };

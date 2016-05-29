@@ -1,3 +1,5 @@
+#ifndef __ALGORITHM_A_H
+#define __ALGORITHM_A_H
 #include "SuperAlgorithm.h"
 
 /*
@@ -22,3 +24,4 @@ public:
 	_313178576_A& operator=(const _313178576_A&) = delete;
 	virtual Direction step(Direction prevStep) override;
 };
+#endif

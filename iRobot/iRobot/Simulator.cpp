@@ -165,7 +165,7 @@ void Simulator::startSimulation()
 	for (string algorithmName : registrar.getAlgorithmNames())
 		scores[algorithmName] = make_unique<int[]>(numOfHouses);
 	
-	if (numOfThreads >= 1)
+	if (numOfThreads > 1)
 	{
 		// create threads and start them
 		vector<unique_ptr<thread>> threads(numOfThreads);
@@ -176,7 +176,7 @@ void Simulator::startSimulation()
 		for (auto& thread_ptr : threads)
 			thread_ptr->join();
 	}
-	else
+	else // numOfThreads = 1
 	{
 		threadSimulation();
 	}
