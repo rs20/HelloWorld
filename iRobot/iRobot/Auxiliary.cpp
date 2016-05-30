@@ -596,6 +596,6 @@ std::string fullPath(std::string relativePath)
 	char* rpath = realpath(fpath.c_str(), NULL);
 	if (rpath != NULL)
 		fpath = string(rpath);
+	free(rpath);
 	return fpath;
-
 }
