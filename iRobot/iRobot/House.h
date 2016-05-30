@@ -23,9 +23,8 @@ public:
 	int initialSumOfDirt;
 	int sumOfDirt;
 	int picCounter = 0;
-	bool videoError = false;
 
-	void montage(const std::string& algoName);
+	int montage(const std::string& algoName, vector<string>& videoErrors);
 };
 
 #endif //__HOUSE__H

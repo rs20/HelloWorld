@@ -8,7 +8,7 @@ using namespace std;
 class Montage
 {
 public:
-	static bool compose(const vector<string> &images, int cols, int rows, const string& composedImagePath);
+	static int compose(const vector<string> &images, int cols, int rows, const string& composedImagePath);
 };
 
 #endif //_MONTAGE__H_

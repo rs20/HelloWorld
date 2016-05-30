@@ -8,24 +8,28 @@
 #include "Montage.h"
 
 
-void createDirectoryIfNotExists(const string& dirPath)
+int createDirectoryIfNotExists(const string& dirPath)
 {
 	std::string cmd = "mkdir -p " + dirPath;
 	int ret = system(cmd.c_str());
 	if (ret == -1)
 	{
-		//handle error
+		return -1;
 	}
+	return 0;
 }
 
-void House::montage(const std::string& algoName)
+// return 0 : ok
+//		 -1 : error (end simulation)
+//		 -2 : error - end simulation and create videos
+int House::montage(const std::string& algoName, vector<string>& videoErrors)
 {
 	std::vector<std::string> tiles;
 	for (int row = 0; row < rows; ++row)
 	{
 		for (int col = 0; col < cols; ++col)
 		{
-			if (row == robot.row && col == robot.col)
+			if ((row == robot.row) && (col == robot.col))
 				tiles.push_back("R");
 			else if (matrix[row][col] == ' ')
 				tiles.push_back("0");
@@ -35,11 +39,17 @@ void House::montage(const std::string& algoName)
 	}
 
 	std::string imagesDirPath = "simulations/" + algoName + "_" + houseFileName;
-	createDirectoryIfNotExists(imagesDirPath);
+	if (createDirectoryIfNotExists(imagesDirPath)) {
+		string error_msg = "Error: In the simulation " + algoName + ", " + houseFileName + ": folder creation " + imagesDirPath + " failed";
+		videoErrors.push_back(error_msg);
+		return -1;
+	}
 	std::string counterStr = std::to_string(picCounter++);
 	std::string composedImage = imagesDirPath + "/image" + std::string(5 - counterStr.length(), '0') + counterStr + ".jpg";
-	if (Montage::compose(tiles, cols, rows, composedImage) == false)
-	{
-		videoError = true;
+	if (!Montage::compose(tiles, cols, rows, composedImage)) {
+		string error_msg = "Error: In the simulation " + algoName + ", " + houseFileName + ": image fie creation fail";
+		videoErrors.push_back(error_msg);
+		return -2;
 	}
+	return 0;
 }

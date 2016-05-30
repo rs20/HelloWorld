@@ -8,7 +8,7 @@ using namespace std;
 class Encoder
 {
 public:
-  static void encode(const string& imagesString, const string& videoOutput);
+	static int encode(const string& imagesString, const string& videoOutput);
 };
 
 #endif //_MONTAGE__H_

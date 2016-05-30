@@ -64,9 +64,7 @@ int Simulator::handleAll()
 		return -1;
 	handleThreads();
 	if (handleVideo())
-	{
 		return -1;
-	}
 	return 0;
 }
 
@@ -169,7 +167,7 @@ void Simulator::handleThreads()
 
 int Simulator::handleVideo()
 {
-	if (isFlagVideoUp && numOfThreads > 1)
+	if (isFlagVideoUp && (numOfThreads > 1))
 	{
 		cout << ERROR_VIDEO << endl;
 		return -1;
@@ -361,11 +359,16 @@ void Simulator::runThreadOnHouse(int houseIndex)
 				curHouses[algIndex].sumOfDirt--;
 			}
 
-			if (isFlagVideoUp && curHouses[algIndex].videoError == false)
-			{
-				curHouses[algIndex].montage(*nameIterator);
+			// create a snapshot of the current house if desired
+			if (isFlagVideoUp) {
+				int montage = curHouses[algIndex].montage(*nameIterator, videoErrors);
+				if (montage == -1) { // folder creation fail - end simulation
+					// TODO: handle
+				}
+				else if (montage == -2) { // image creation fail - end simulation + create video
+					// TODO: handle
+				}
 			}
-
 
 			// walked into a wall -> stop the algorithm from running. its score will be zero
 			if (curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] == 'W') {
@@ -524,13 +527,14 @@ void Simulator::runThreadOnHouse(int houseIndex)
 		nameIterator = algorithmNames.begin();
 		string simulationDir;
 		string imagesExpression;
-		while (nameIterator != algorithmNames.end())
-		{
-
+		while (nameIterator != algorithmNames.end()) {
 			simulationDir = "simulations/" + *nameIterator + "_" + curHouses[algoIndex].houseFileName + "/";
 			imagesExpression = simulationDir + "image%5d.jpg";
-			Encoder::encode(imagesExpression, *nameIterator + "_" + curHouses[algoIndex].houseFileName + ".mpg");
-
+			if (Encoder::encode(imagesExpression, *nameIterator + "_" + curHouses[algoIndex].houseFileName + ".mpg")) { // video creation fail
+				string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algoIndex].houseFileName + ": video file creation failed";
+				videoErrors.push_back(error_msg);
+				// error TODO: should still handle error ?
+			}
 			nameIterator++;
 			algoIndex++;
 		}
@@ -637,6 +641,10 @@ void Simulator::printErrors()
 		for (int algIndex = 0; algIndex < numOfAlgorithms; algIndex++) {
 			if (!(walkingIntoWallsErrors[algIndex].empty()))
 				cout << walkingIntoWallsErrors[algIndex] << endl;
+		}
+		// print video errors
+		for (auto it = videoErrors.begin(); it != videoErrors.end(); it++) {
+			cout << *it << endl;
 		}
 	}
 

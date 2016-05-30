@@ -16,6 +16,7 @@ class Simulator {
 	unique_ptr<bool[]> isValidHouses;
 	unique_ptr<string[]> houseErrors;
 	unique_ptr<string[]> walkingIntoWallsErrors;
+	vector<string> videoErrors;
 	bool algorithmIntoWall = false;
 	// map algorithm (name) to vector of scores (score[i] for houses[i])
 	// no intereference between different threads because each one accesses a different index in the score array
