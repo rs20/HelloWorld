@@ -155,9 +155,10 @@
     <ClInclude Include="Auxiliary.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Direction.h" />
-    <ClInclude Include="HashCell.h" />
+    <ClInclude Include="Encoder.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="MakeUnique.h" />
+    <ClInclude Include="Montage.h" />
     <ClInclude Include="MyHouse.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="score_formula.h" />
@@ -175,6 +176,9 @@
     <ClCompile Include="AlgorithmRegistrar.cpp" />
     <ClCompile Include="AlgorithmRegistration.cpp" />
     <ClCompile Include="Auxiliary.cpp" />
+    <ClCompile Include="Encoder.cpp" />
+    <ClCompile Include="House.cpp" />
+    <ClCompile Include="Montage.cpp" />
     <ClCompile Include="MyHouse.cpp" />
     <ClCompile Include="score_formula.cpp" />
     <ClCompile Include="Simulator.cpp" />

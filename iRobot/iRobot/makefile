@@ -9,13 +9,13 @@ default:
 
 OBJS = simulator.o
 
-simulator: Sensor.cpp Simulator.cpp Auxiliary.cpp AlgorithmRegistrar.cpp AlgorithmRegistration.cpp MyHouse.cpp SuperAlgorithm.cpp
+simulator: Sensor.cpp Simulator.cpp Auxiliary.cpp AlgorithmRegistrar.cpp AlgorithmRegistration.cpp MyHouse.cpp SuperAlgorithm.cpp House.cpp Montage.cpp Encoder.cpp
 	g++ -std=c++11 -rdynamic -o $@ $^ -std=c++11 -Wall -Wextra -O2 -pedantic -pthread -ldl
 
 Sensor.o: Sensor.cpp Sensor.h AbstractSensor.h SensorInformation.h House.h Cell.h MakeUnique.h
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread Sensor.cpp
 
-Simulator.o: Simulator.cpp Simulator.h Score.h Auxiliary.h Sensor.h House.h Cell.h MakeUnique.h AbstractSensor.h SensorInformation.h AlgorithmRegistrar.h AbstractAlgorithm.h Direction.h
+Simulator.o: Simulator.cpp Simulator.h Score.h Auxiliary.h Sensor.h House.h Cell.h MakeUnique.h AbstractSensor.h SensorInformation.h AlgorithmRegistrar.h AbstractAlgorithm.h Direction.h Encoder.h
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread Simulator.cpp
 
 Auxiliary.o: Auxiliary.cpp Auxiliary.h House.h Cell.h MakeUnique.h AbstractSensor.h SensorInformation.h AlgorithmRegistrar.h AbstractAlgorithm.h Direction.h
@@ -32,6 +32,15 @@ MyHouse.o: MyHouse.cpp MyHouse.h Direction.h SensorInformation.h Cell.h
 
 SuperAlgorithm.o: SuperAlgorithm.cpp SuperAlgorithm.h MakeUnique.h AlgorithmRegistration.h AlgorithmRegistrar.h Direction.h AbstractAlgorithm.h AbstractSensor.h SensorInformation.h MyHouse.h Cell.h
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread SuperAlgorithm.cpp
+
+House.o: House.cpp House.h Cell.h MakeUnique.h Montage.h
+	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread House.cpp
+
+Encoder.o: Encoder.cpp Encoder.h
+	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread Encoder.cpp
+
+Montage.o: Montage.cpp Montage.h
+	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread Montage.cpp
 
 score_formula.o: score_formula.cpp
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic score_formula.cpp -mcmodel=large

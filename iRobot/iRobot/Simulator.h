@@ -1,6 +1,7 @@
 #include "Auxiliary.h"
 #include "Score.h"
 #include "Sensor.h"
+#include "Encoder.h"
 
 class Simulator {
 	int numOfHouses = 0; // based on number of files in folder (before threads start)
@@ -22,6 +23,7 @@ class Simulator {
 	int isErrorInScoreCalc = false;
 	AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 	map<string, int> config = {};
+	bool isFlagVideoUp = false;
 	vector<string> flags{ defaultConfigPath, defaultScorePath, defaultHousePath, defaultAlgorithmPath, defaultThreads };
 public:
 	void handleArguments(int argc, const char* argv[]);
@@ -31,6 +33,7 @@ public:
 	int handleAlgorithms();
 	int handleHouses();
 	void handleThreads();
+	int handleVideo();
 	void startSimulation();
 	void threadSimulation();
 	void runThreadOnHouse(int houseIndex);

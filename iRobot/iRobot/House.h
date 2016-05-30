@@ -7,8 +7,9 @@
 #include "Cell.h"
 #include "MakeUnique.h"
 
-typedef struct House
+class House
 {
+public:
 	// information based on .house file
 	std::string houseFileName;
 	std::string houseDescription;
@@ -21,6 +22,10 @@ typedef struct House
 	Cell docking;
 	int initialSumOfDirt;
 	int sumOfDirt;
-} House;
+	int picCounter = 0;
+	bool videoError = false;
+
+	void montage(const std::string& algoName);
+};
 
 #endif //__HOUSE__H

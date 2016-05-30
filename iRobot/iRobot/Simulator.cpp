@@ -20,27 +20,31 @@ int main(int argc, const char* argv[])
 void Simulator::handleArguments(int argc, const char* argv[])
 {
 	// ignore non-interesting flags
-	for (int i = 1; i < argc - 1; ) {
-		if (!strcmp(argv[i], "-config")) {
+	for (int i = 1; i < argc; ) {
+		if (!strcmp(argv[i], "-config") && i < argc - 1) {
 			flags[0] = argv[i + 1];
 			i += 2;
 		}
-		else if (!strcmp(argv[i], "-score_formula")) {
+		else if (!strcmp(argv[i], "-score_formula") && i < argc - 1) {
 			flags[1] = argv[i + 1];
 			i += 2;
 			score_loaded = true;
 		}
-		else if (!strcmp(argv[i], "-house_path")) {
+		else if (!strcmp(argv[i], "-house_path") && i < argc - 1) {
 			flags[2] = argv[i + 1];
 			i += 2;
 		}
-		else if (!strcmp(argv[i], "-algorithm_path")) {
+		else if (!strcmp(argv[i], "-algorithm_path") && i < argc - 1) {
 			flags[3] = argv[i + 1];
 			i += 2;
 		}
-		else if (!strcmp(argv[i], "-threads")) {
+		else if (!strcmp(argv[i], "-threads") && i < argc - 1) {
 			flags[4] = argv[i + 1];
 			i += 2;
+		}
+		else if (!strcmp(argv[i], "-video")) {
+			isFlagVideoUp = true;
+			i++;
 		}
 		else {
 			i++;
@@ -59,6 +63,10 @@ int Simulator::handleAll()
 	if (handleHouses())
 		return -1;
 	handleThreads();
+	if (handleVideo())
+	{
+		return -1;
+	}
 	return 0;
 }
 
@@ -157,6 +165,16 @@ void Simulator::handleThreads()
 		numOfThreads = 1;
 	else if (numOfThreads > numOfHouses) // number of threads shall not exceed number of houses
 		numOfThreads = numOfHouses;
+}
+
+int Simulator::handleVideo()
+{
+	if (isFlagVideoUp && numOfThreads > 1)
+	{
+		cout << ERROR_VIDEO << endl;
+		return -1;
+	}
+	return 0;
 }
 
 void Simulator::startSimulation()
@@ -343,6 +361,12 @@ void Simulator::runThreadOnHouse(int houseIndex)
 				curHouses[algIndex].sumOfDirt--;
 			}
 
+			if (isFlagVideoUp && curHouses[algIndex].videoError == false)
+			{
+				curHouses[algIndex].montage(*nameIterator);
+			}
+
+
 			// walked into a wall -> stop the algorithm from running. its score will be zero
 			if (curHouses[algIndex].matrix[curHouses[algIndex].robot.row][curHouses[algIndex].robot.col] == 'W') {
 				into_wall[algIndex] = true;
@@ -493,6 +517,25 @@ void Simulator::runThreadOnHouse(int houseIndex)
 		}
 		nameIterator++;
 	}
+
+	if (isFlagVideoUp)
+	{
+		int algoIndex = 0;
+		nameIterator = algorithmNames.begin();
+		string simulationDir;
+		string imagesExpression;
+		while (nameIterator != algorithmNames.end())
+		{
+
+			simulationDir = "simulations/" + *nameIterator + "_" + curHouses[algoIndex].houseFileName + "/";
+			imagesExpression = simulationDir + "image%5d.jpg";
+			Encoder::encode(imagesExpression, *nameIterator + "_" + curHouses[algoIndex].houseFileName + ".mpg");
+
+			nameIterator++;
+			algoIndex++;
+		}
+	}
+
 	if (DEBUG)
 		getchar();
 }

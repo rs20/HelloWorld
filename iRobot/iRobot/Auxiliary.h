@@ -45,7 +45,7 @@
 #define defaultThreads "1"
 
 #define USAGE "Usage: simulator [-config <config path>] [-house_path <house path>] [-algorithm_path <algorithm path>] \
-[-score_formula <score .so path>] [-threads <num threads>]"
+[-score_formula <score .so path>] [-threads <num threads>] [-video]"
 
 #define ERROR_CALCULATE_SCORE "Score formula could not calculate some scores, see -1 in the results table"
 #define ERROR_FIND_SCORE_FILE "cannot find score_formula.so in "
@@ -60,6 +60,7 @@
 #define ERROR_OVERRIDE_DOCKING_STATION "Docking station will be overridden as it's placed under the surrounding walls."
 #define ERROR_NO_DOCKING_STATIONS "missing docking station (no D in house)"
 #define ERROR_TOO_MANY_DOCKING_STATIONS "too many docking stations (more than one D in house)"
+#define ERROR_VIDEO "can not create video with more than one thread"
 
 #define NOT_VALID_SO "file cannot be loaded or is not a valid .so"
 #define NOT_VALID_ALGORITHM "valid .so, but no algorithm was registered after loading it"
