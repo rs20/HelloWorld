@@ -3,6 +3,7 @@
 
 // House struct
 #include <string>
+#include <vector>
 
 #include "Cell.h"
 #include "MakeUnique.h"
@@ -27,7 +28,7 @@ public:
 	int imageErrors = 0;
 	bool createVideo = false;
 
-	void montage(const std::string& algoName, vector<string>& videoErrors);
+	void montage(const std::string& algoName, std::vector<std::string>& videoErrors);
 };
 
 #endif //__HOUSE__H

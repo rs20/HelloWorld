@@ -52,7 +52,7 @@ score_formula.so: score_formula.o
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic 313178576_A_.cpp -mcmodel=large
 
 313178576_A_.so: 313178576_A_.o
-	g++ -std=c++11 -shared -Wl,-soname,313178576_B_.so -o 313178576_A_.so 313178576_A_.o
+	g++ -std=c++11 -shared -Wl,-soname,313178576_A_.so -o 313178576_A_.so 313178576_A_.o
 
 313178576_B_.o: 313178576_B_.cpp 313178576_B_.h SuperAlgorithm.h MakeUnique.h AlgorithmRegistration.h AlgorithmRegistrar.h Direction.h AbstractAlgorithm.h AbstractSensor.h SensorInformation.h MyHouse.h Cell.h
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic 313178576_B_.cpp -mcmodel=large
