@@ -42,7 +42,7 @@ Encoder.o: Encoder.cpp Encoder.h
 Montage.o: Montage.cpp Montage.h
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic -pthread Montage.cpp
 
-score_formula.o: score_formula.cpp
+score_formula.o: score_formula.cpp score_formula.h
 	g++ -std=c++11 -c -std=c++11 -Wall -Wextra -pedantic score_formula.cpp -mcmodel=large
 
 score_formula.so: score_formula.o

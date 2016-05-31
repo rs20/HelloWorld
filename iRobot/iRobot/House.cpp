@@ -34,7 +34,7 @@ void House::montage(const std::string& algoName, std::vector<std::string>& video
 		}
 	}
 
-	std::string imagesDirPath = "simulations/" + algoName + "_" + houseFileName;
+	imagesDirPath = "simulations/" + algoName + "_" + houseFileName;
 	if (createDirectoryIfNotExists(imagesDirPath)) {
 		std::string error_msg = "Error: In the simulation " + algoName + ", " + houseFileName + ": folder creation " + imagesDirPath + " failed";
 		videoErrors.push_back(error_msg);
@@ -43,7 +43,7 @@ void House::montage(const std::string& algoName, std::vector<std::string>& video
 	}
 	std::string counterStr = std::to_string(picCounter++);
 	std::string composedImage = imagesDirPath + "/image" + std::string(5 - counterStr.length(), '0') + counterStr + ".jpg";
-	if (!Montage::compose(tiles, cols, rows, composedImage)) {
+	if (Montage::compose(tiles, cols, rows, composedImage)) {
 		imageErrors++;
 		return;
 	}

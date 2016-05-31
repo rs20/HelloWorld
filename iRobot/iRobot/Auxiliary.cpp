@@ -599,3 +599,9 @@ std::string fullPath(std::string relativePath)
 	free(rpath);
 	return fpath;
 }
+
+int removeDirectory(const std::string& dirPath)
+{
+	std::string cmd = "rm -r " + dirPath;
+	return system(cmd.c_str());
+}

@@ -161,8 +161,6 @@ void Simulator::handleThreads()
 	numOfThreads = atoi(flags[4].c_str());
 	if (numOfThreads <= 0) // number of threads shall be a positive number
 		numOfThreads = 1;
-	else if (numOfThreads > numOfHouses) // number of threads shall not exceed number of houses
-		numOfThreads = numOfHouses;
 }
 
 int Simulator::handleVideo()
@@ -177,6 +175,10 @@ int Simulator::handleVideo()
 
 void Simulator::startSimulation()
 {
+	// number of threads shall not exceed number of houses
+	if (numOfThreads > numOfHouses)
+		numOfThreads = numOfHouses;
+
 	// for each algorithm -> initialize array of scores for each house
 	for (string algorithmName : registrar.getAlgorithmNames())
 		scores[algorithmName] = make_unique<int[]>(numOfHouses);
@@ -197,7 +199,6 @@ void Simulator::startSimulation()
 		threadSimulation();
 	}
 	
-
 	// print results
 	printScores();
 	printErrors();
@@ -540,6 +541,15 @@ void Simulator::runThreadOnHouse(int houseIndex)
 						videoErrors.push_back(error_msg);
 					}
 				}
+				// remove the folder with all its content (images)
+				removeDirectory(curHouses[algIndex].imagesDirPath);
+				// optional: if removing folder fails -> add to errors
+				/*
+				if (removeDirectory(curHouses[algIndex].imagesDirPath)) {
+					string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algIndex].houseFileName + ": removing folder " + curHouses[algIndex].imagesDirPath + " failed";
+					videoErrors.push_back(error_msg);
+				}
+				*/
 			}
 			nameIterator++;
 			algIndex++;

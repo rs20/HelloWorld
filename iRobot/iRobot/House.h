@@ -24,6 +24,7 @@ public:
 	int initialSumOfDirt;
 	int sumOfDirt;
 	int picCounter = 0;
+	std::string imagesDirPath;
 	bool folderError = false;
 	int imageErrors = 0;
 	bool createVideo = false;
