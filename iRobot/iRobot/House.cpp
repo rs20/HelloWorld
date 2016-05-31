@@ -19,10 +19,8 @@ int createDirectoryIfNotExists(const string& dirPath)
 	return 0;
 }
 
-// return 0 : ok
-//		 -1 : error (end simulation)
-//		 -2 : error - end simulation and create videos
-int House::montage(const std::string& algoName, vector<string>& videoErrors)
+
+void House::montage(const std::string& algoName, vector<string>& videoErrors)
 {
 	std::vector<std::string> tiles;
 	for (int row = 0; row < rows; ++row)
@@ -42,14 +40,15 @@ int House::montage(const std::string& algoName, vector<string>& videoErrors)
 	if (createDirectoryIfNotExists(imagesDirPath)) {
 		string error_msg = "Error: In the simulation " + algoName + ", " + houseFileName + ": folder creation " + imagesDirPath + " failed";
 		videoErrors.push_back(error_msg);
-		return -1;
+		folderError = true;
+		return;
 	}
 	std::string counterStr = std::to_string(picCounter++);
 	std::string composedImage = imagesDirPath + "/image" + std::string(5 - counterStr.length(), '0') + counterStr + ".jpg";
 	if (!Montage::compose(tiles, cols, rows, composedImage)) {
-		string error_msg = "Error: In the simulation " + algoName + ", " + houseFileName + ": image fie creation fail";
-		videoErrors.push_back(error_msg);
-		return -2;
+		imageErrors++;
+		return;
 	}
-	return 0;
+	// image was created succesfully -> should create a video at the end
+	createVideo = true;
 }

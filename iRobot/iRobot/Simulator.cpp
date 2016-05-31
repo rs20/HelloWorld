@@ -359,15 +359,10 @@ void Simulator::runThreadOnHouse(int houseIndex)
 				curHouses[algIndex].sumOfDirt--;
 			}
 
-			// create a snapshot of the current house if desired
-			if (isFlagVideoUp) {
-				int montage = curHouses[algIndex].montage(*nameIterator, videoErrors);
-				if (montage == -1) { // folder creation fail - end simulation
-					// TODO: handle
-				}
-				else if (montage == -2) { // image creation fail - end simulation + create video
-					// TODO: handle
-				}
+			// create a snapshot of the current house if desired && there was no previous error with creating a folder for the current alg+home
+			// note that we do take a snapshot of the case in which a robot gets into a wall (that's ok as amir said)
+			if (isFlagVideoUp && !curHouses[algIndex].folderError) {
+				curHouses[algIndex].montage(*nameIterator, videoErrors);
 			}
 
 			// walked into a wall -> stop the algorithm from running. its score will be zero
@@ -521,22 +516,33 @@ void Simulator::runThreadOnHouse(int houseIndex)
 		nameIterator++;
 	}
 
+	// create the videos for all the algorithms on the house
 	if (isFlagVideoUp)
 	{
-		int algoIndex = 0;
+		algIndex = 0;
 		nameIterator = algorithmNames.begin();
 		string simulationDir;
 		string imagesExpression;
 		while (nameIterator != algorithmNames.end()) {
-			simulationDir = "simulations/" + *nameIterator + "_" + curHouses[algoIndex].houseFileName + "/";
-			imagesExpression = simulationDir + "image%5d.jpg";
-			if (Encoder::encode(imagesExpression, *nameIterator + "_" + curHouses[algoIndex].houseFileName + ".mpg")) { // video creation fail
-				string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algoIndex].houseFileName + ": video file creation failed";
-				videoErrors.push_back(error_msg);
-				// error TODO: should still handle error ?
+			// make a video only when the folder creation was successfull
+			if (!curHouses[algIndex].folderError) {
+				// image creation error
+				if (curHouses[algIndex].imageErrors > 0) {
+					string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algIndex].houseFileName + ": the creation of " + curHouses[algIndex].imageErrors + " images was failed";
+					videoErrors.push_back(error_msg);
+				}
+				// make a video only when at least one snapshot was created successfully
+				if (curHouses[algIndex].createVideo) {
+					simulationDir = "simulations/" + *nameIterator + "_" + curHouses[algIndex].houseFileName + "/";
+					imagesExpression = simulationDir + "image%5d.jpg";
+					if (Encoder::encode(imagesExpression, *nameIterator + "_" + curHouses[algIndex].houseFileName + ".mpg")) { // video creation fail
+						string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algIndex].houseFileName + ": video file creation failed";
+						videoErrors.push_back(error_msg);
+					}
+				}
 			}
 			nameIterator++;
-			algoIndex++;
+			algIndex++;
 		}
 	}
 
