@@ -528,7 +528,7 @@ void Simulator::runThreadOnHouse(int houseIndex)
 			if (!curHouses[algIndex].folderError) {
 				// image creation error
 				if (curHouses[algIndex].imageErrors > 0) {
-					string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algIndex].houseFileName + ": the creation of " + curHouses[algIndex].imageErrors + " images was failed";
+					string error_msg = "Error: In the simulation " + *nameIterator + ", " + curHouses[algIndex].houseFileName + ": the creation of " + to_string(curHouses[algIndex].imageErrors) + " images was failed";
 					videoErrors.push_back(error_msg);
 				}
 				// make a video only when at least one snapshot was created successfully
